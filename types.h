@@ -4,6 +4,7 @@
 using std::vector;
 
 typedef vector<string> Phrase;
+typedef map<Phrase,size_t> NgramCounts;  
 
 struct Line
 {
@@ -33,5 +34,17 @@ struct Vertex
     int nIncomingVisited;
 };
 
+struct BleuStats
+{
+    double leftBoundary;
+    size_t counts[4];
+    size_t length;
+};
+
+    
+    
+    typedef map<Phrase,size_t> NgramCounts;  
+
+    
 
 
