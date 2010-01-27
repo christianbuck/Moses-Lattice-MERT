@@ -101,3 +101,40 @@ computeBleuStats(const vector<line>& a, const Phrase& reference, vector<BleuStat
     }
 }
 
+void accumulateBleu(const vector<BleuStats>& stats, vector< vector<boundary> >& cumulatedCounts, size_t& totalLength) {
+    int diff = 0;
+    for (size_t n =0; n<4;n++) {
+        int oldCount = 0;
+        for (size_t i=0;i<stats.size();++i) {
+            diff = stats[i].counts[n] - oldCount;
+            if (n==0) {
+                totalLength += stats[i].length;
+            }
+            cumulatedCounts[n][i].push_back( boundary(stats[i].leftBoundary,diff) );
+        }
+    }
+    pruneCounts(cumulatedCounts);
+}
+    
+void pruneCounts(vector< vector<boundary> >& cumulatedCounts)
+{
+    vector<boundary>& counts = cumulatedCounts[i];
+    std::sort(counts.start(),counts.end());
+    double oldBoundary = 0;
+    for (vector<boundary>::iterator i=counts.begin();i<counts.end();i++) {
+        if (i==counts.begin()) {
+            oldBoundary = (*i)->first;
+            continue;
+        }
+        double currBoundary = (*i)->first;
+        if (currBoundary==oldBoundary) {
+            (*i)->second += (*i)->second; 
+            counts.erase(i)
+            i--;
+        }
+    }
+}    
+
+
+
+
