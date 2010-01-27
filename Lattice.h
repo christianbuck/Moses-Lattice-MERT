@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 
+#include "Types.h"
+
 class Lattice {
 public:
     typedef size_t VertexKey;
@@ -80,3 +82,5 @@ while S is non-empty do
         if m has no other incoming edges then
             insert m into S
 */
+
+std::vector<Line> latticeEnvelope(Lattice &lattice, const std::vector<double>& d, const std::vector<double>& lambdas);
