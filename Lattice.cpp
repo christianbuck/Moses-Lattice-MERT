@@ -1,6 +1,7 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
+#include <cassert>
 
 #include "Lattice.h"
 #include "Types.h"
@@ -12,14 +13,15 @@ using std::ostream;
 using std::cout;
 using std::endl;
 
-double dotProduct(const vector<double> &a, const vector<double> &b)
+double dotProduct(const vector<double>& a,const vector<double>& b)
 {
-    size_t K = a.size();
-    double sum = 0;
-    for (size_t i = 0; i < K; i++) {
-        sum += a[i] * b[i];
+    size_t d = a.size();
+    assert(b.size() == d);
+    double p = 0.0;
+    for (size_t i=0;i<d;++i) {
+        p += a[i]*b[i];
     }
-    return sum;
+    return p;
 }
 
 ostream & operator << (ostream &os, const Phrase& p) {
@@ -29,6 +31,11 @@ ostream & operator << (ostream &os, const Phrase& p) {
     }
     return os;
 }
+
+
+// Implementation of Algorithm 1
+// Calculates the upper envelope for a set of lines
+// The algorithm modifies the line array in place
 
 void sweepLine(vector<Line> &a)
 {
