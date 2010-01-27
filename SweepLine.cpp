@@ -113,15 +113,19 @@ void computeBleuStats(const vector<line>& a, const Phrase& reference, vector<Ble
     }
 }
 
-void accumulateBleu(const vector<BleuStats>& stats, vector< vector<boundary> >& cumulatedCounts, size_t& totalLength) 
+void accumulateBleu(const vector<BleuStats>& stats, vector< vector<boundary> >& cumulatedCounts) 
 {
-    for (size_t n =0; n<4;n++) {
+    int nStats = stats.size();
+    for (size_t n =0; n<4+1;n++) {  // cumulatedCounts[4] == lengths
         int oldCount = 0;
-        for (size_t i=0;i<stats.size();++i) {
+        for (size_t i=0;i<nStats;++i) {
             if (n==0) {
                 totalLength += stats[i].length;
             }
-            int diff = stats[i].counts[n] - oldCount;
+            int diff;
+            int curr = n<4 ? stats[i].counts[n] : stats[i].length;
+            diff = curr - oldCount;
+            oldCount = curr;
             cumulatedCounts[n][i].push_back( boundary(stats[i].leftBoundary,diff) );
         }
     }
