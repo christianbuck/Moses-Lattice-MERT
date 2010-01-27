@@ -1,4 +1,5 @@
 # Main LatticeMERT : Main.cpp DagIterator.cpp SweepLine.cpp ;
-Main LatticeMERT : Main.cpp DagIterator.cpp MosesGraphReader.cpp ;
+Main LatticeMERT : Main.cpp Lattice.cpp MosesGraphReader.cpp ;
 LINKLIBS = -lstdc++ -lboost_regex ;
+OPTIM = -O3 ;
 
