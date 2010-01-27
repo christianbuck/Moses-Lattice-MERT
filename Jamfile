@@ -1,0 +1,2 @@
+Main LatticeMERT : Main.cpp DagIterator.cpp SweepLine.cpp ;
+LINKLIBS = -lstdc++ ;
