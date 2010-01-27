@@ -65,7 +65,8 @@ vector<Line> latticeEnvelope(const Vertex& source, const int nEdges, const vecto
     return a;
 }
 
-void countNGrams(const Phrase& reference, NgramCounts& counts) {
+void countNGrams(const Phrase& reference, NgramCounts& counts) 
+{
     size_t referenceSize = reference.size();
     for (size_t n=1; n<=4;n++) {
         for (size_t offset=0; offset<referenceSize-n+1;offset++) {
@@ -77,8 +78,19 @@ void countNGrams(const Phrase& reference, NgramCounts& counts) {
         }
     }
 }
-    
-void computeBleuStats(const vector<line>& a, const Phrase& reference, vector<BleuStats>& stats) {
+
+double dotProduct(const vector<double>& a,const vector<double>& b) 
+{
+    size_t d = a.size();
+    assert(b.size() == d);
+    double p = 0.0;
+    for (size_t i=0;i<d;++i) {
+        p += a[i]*b[i];
+    }
+}
+
+void computeBleuStats(const vector<line>& a, const Phrase& reference, vector<BleuStats>& stats) 
+{
     size_t K = a.size();
     NgramCounts referenceCounts;
     countNGrams(reference,referenceCounts);
@@ -101,15 +113,15 @@ void computeBleuStats(const vector<line>& a, const Phrase& reference, vector<Ble
     }
 }
 
-void accumulateBleu(const vector<BleuStats>& stats, vector< vector<boundary> >& cumulatedCounts, size_t& totalLength) {
-    int diff = 0;
+void accumulateBleu(const vector<BleuStats>& stats, vector< vector<boundary> >& cumulatedCounts, size_t& totalLength) 
+{
     for (size_t n =0; n<4;n++) {
         int oldCount = 0;
         for (size_t i=0;i<stats.size();++i) {
-            diff = stats[i].counts[n] - oldCount;
             if (n==0) {
                 totalLength += stats[i].length;
             }
+            int diff = stats[i].counts[n] - oldCount;
             cumulatedCounts[n][i].push_back( boundary(stats[i].leftBoundary,diff) );
         }
     }
