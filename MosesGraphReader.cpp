@@ -3,30 +3,36 @@
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "Lattice.h"
+#include "MosesGraphReader.h"
 
 using namespace boost;
 using namespace std;
 
-bool ReadGraph(istream &is)
+// 0 hyp=0 stack=0 forward=1 fscore=-10.5248
+// 0 hyp=37 stack=1 back=0 score=-0.975545 transition=-0.975545 [ w: -2 u: 0 d: -4 0 0 -1.03429 0 0 0 lm: -10.9675 tm: -0.442792 -0.794259 -1.87952 -2.90528 0.999896 ] forward=194 fscore=-6.27491 covered=4-4 out=die inflation , pC=-0.244107, c=-0.932361
+
+regex MosesGraphReader::rx_line0("(\\d+) hyp=(\\d+) stack=(\\d+) ");
+regex MosesGraphReader::rx_line1("back=(\\d+) score=(.*) transition=(.*) \\[ (.*) \\] ");
+regex MosesGraphReader::rx_line4("recombined=(\\d+) ");
+regex MosesGraphReader::rx_line2("\\w+:");
+regex MosesGraphReader::rx_line3("-?\\d+(\\.\\d+)?");
+
+MosesGraphReader::MosesGraphReader(istream &is) : is(is)
 {
-    // 0 hyp=0 stack=0 forward=1 fscore=-10.5248
-    // 0 hyp=21 stack=1 back=0 score=-7.46278 transition=-7.46278 forward=983 fscore=-8.85446 covered=1-1 out=iepakojumu , pC=-1.49323, c=-5.09407
-    // 0 hyp=33 stack=1 back=0 score=-10.9963 transition=-10.9963 recombined=21 forward=983 fscore=-8.85446 covered=1-1 out=tādu iepakojumu , pC=-2.84394, c=-8.65174
-    regex rx_line0("(\\d+) hyp=(\\d+) stack=(\\d+) ");
-    regex rx_line1("back=(\\d+) score=(-?\\d+(\\.\\d+)?) ");
-    regex rx_line2("transition=(-?\\d+(\\.\\d+)?) recombined=(\\d+)");
+    string line;
+    getline(is, line);
+}
 
-    Lattice lattice;
-
+bool MosesGraphReader::GetNextLattice(Lattice &lattice)
+{
     while (!is.eof()) {
         string line;
         getline(is, line);
-        if (is.eof()) break;
+        if (is.eof()) return false;
 
         smatch m;
         if (!regex_search(line, m, rx_line0, match_continuous)) {
-            cout << "Line not matching!" << endl;
+            cout << "Line not matching! [" << line << "]" << endl;
             return false;
         }
         string sentenceIdStr = string(m[1].first, m[1].second);
@@ -35,20 +41,60 @@ bool ReadGraph(istream &is)
         size_t sentenceId = lexical_cast<size_t>(sentenceIdStr);
         size_t hypId = lexical_cast<size_t>(hypIdStr);
 
-        if (hypIdStr == "0") continue;
+        if (hypId == 0) break;
 
         string suffix = m.suffix();
         if (!regex_search(suffix, m, rx_line1, match_continuous)) {
-            cout << "Line not matching!" << endl;
+            cout << "Line not matching! [" << suffix << "]" << endl;
             return false;
         }
         string backIdStr = string(m[1].first, m[1].second);
+        string featureListStr = string(m[4].first, m[4].second);
 
         size_t backId = lexical_cast<size_t>(backIdStr);
 
-        cout << "Edge " << backId << " - " << hypId << endl;
-        lattice.addEdge(backId, hypId);
+        // look if there is recombination info
+        suffix = m.suffix();
+        if (regex_search(suffix, m, rx_line4, match_continuous)) {
+            string recombIdStr = string(m[1].first, m[1].second);
+            size_t recombId = lexical_cast<size_t>(recombIdStr);
+//          cout << "  recombined " << hypId << " to " << recombId << endl;
+            hypId = recombId;
+        }
+
+//      cout << "Parsing feature string [" << featureListStr << "]" << endl;
+        vector<double> featureList;
+        while (featureListStr.size() > 0) {
+            // really inefficient way to trim spaces from the start
+            while (featureListStr.size() > 0) {
+                if (featureListStr[0] != ' ') break;
+                featureListStr = featureListStr.substr(1);
+            }
+            if (featureListStr.size() == 0) break;
+            // try to match feature description
+            if (regex_search(featureListStr, m, rx_line2, match_continuous)) {
+                featureListStr = m.suffix();
+                continue;
+            }
+            // try to match feature value
+            if (regex_search(featureListStr, m, rx_line3, match_continuous)) {
+                string featureStr = string(m[0].first, m[0].second);
+//              cout << "Converting [" << featureStr << "]" << endl;
+                double feature = lexical_cast<double>(featureStr);
+                featureList.push_back(feature);
+                featureListStr = m.suffix();
+                continue;
+            }
+            cout << "feature string [" << featureListStr << "] not matching!" << endl;
+            return false;
+        }
+
+        // add the edge to the lattice
+//        cout << "Edge " << backId << " - " << hypId << " Weights " << weightList.size() << endl;
+//        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
+        Lattice::Edge &edge = lattice.addEdge(backId, hypId);
+        edge.features = featureList;
     }
-    cout << "Lattice vertices " << lattice.vertices.size() << endl;
+    cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
     return true;
 }
