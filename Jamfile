@@ -1,2 +1,4 @@
-Main LatticeMERT : Main.cpp DagIterator.cpp SweepLine.cpp ;
-LINKLIBS = -lstdc++ ;
+# Main LatticeMERT : Main.cpp DagIterator.cpp SweepLine.cpp ;
+Main LatticeMERT : Main.cpp DagIterator.cpp MosesGraphReader.cpp ;
+LINKLIBS = -lstdc++ -lboost_regex ;
+
