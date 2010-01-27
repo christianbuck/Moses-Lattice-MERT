@@ -1,8 +1,15 @@
+#pragma once
+
 #include <vector>
 #include <string>
+#include <map>
 
+using std::map;
 using std::vector;
+using std::string;
+using std::wstring;
 
+typedef wstring String;
 typedef vector<string> Phrase;
 typedef map<Phrase,size_t> NgramCounts;  
 
@@ -19,12 +26,16 @@ struct Line
     }
 };
 
+struct Vertex;
+
 struct Edge 
 {
     vector<double> features;
     Phrase phrase;
-    Vertex end;
+    Vertex* end;
     size_t idx;
+
+    Edge(Vertex* end) : end(end) {}
 };
 
 struct Vertex

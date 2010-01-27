@@ -1,11 +1,14 @@
-# dagiterator
-#include "types.h"
+#pragma once 
+// dagiterator
+#include "Types.h"
 
 class DagIterator {
-    public:
-        Vertex getVertex();
-        bool next();
-        DagIterator(Vertex);
+public:
+    Vertex getVertex();
+    bool next();
+    DagIterator(Vertex);
         
-    private:
-        vector<Vertex> pendingVertices;
+private:
+    vector<Vertex> pendingVertices;
+};
+

@@ -1,5 +1,4 @@
 #include "DagIterator.h"
-#include "types.h"
 #include <assert.h>
 
 /* 
@@ -24,25 +23,21 @@ DagIterator::DagIterator(Vertex start) {
 Vertex DagIterator::getVertex() 
 {
     assert (pendingVertices.size() > 0);
-    return pendingVertices.rbegin()*;
+    return pendingVertices.back();
 };
 
 bool DagIterator::next() 
 {
-    Vertex v = pendingVertices.pop_back();
+    Vertex v = pendingVertices.back();
+    pendingVertices.pop_back();
     for (size_t i=0; i<v.out.size();++i) {
-        Vertex& vEnd = v.out[i].end;
-        if (++vEnd.nIncomingVisited % vEnd.in.size() == 0) {
-            pendingVertices.push_back(vEnd);
+        Vertex* vEnd = v.out[i].end;
+        if (++vEnd->nIncomingVisited % vEnd->in.size() == 0) {
+            pendingVertices.push_back(*vEnd);
         }
     }
     return !pendingVertices.empty();
 };
-
-
-DagIterator::DagIterator(Vertex start) {
-    pendingVertices.push_back(start);
-}
 
 
         
