@@ -1,7 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include "types.h"
+#include "Types.h"
 
 using std::vector;
 using std::numeric_limits;
@@ -78,7 +78,7 @@ void countNGrams(const Phrase& reference, NgramCounts& counts) {
     }
 }
     
-computeBleuStats(const vector<line>& a, const Phrase& reference, vector<BleuStats>& stats) {
+void computeBleuStats(const vector<line>& a, const Phrase& reference, vector<BleuStats>& stats) {
     size_t K = a.size();
     NgramCounts referenceCounts;
     countNGrams(reference,referenceCounts);
