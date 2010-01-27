@@ -5,13 +5,14 @@
 #include <map>
 
 using std::map;
+using std::pair;
 using std::vector;
 using std::string;
 using std::wstring;
 
 typedef wstring String;
 typedef vector<string> Phrase;
-typedef map<Phrase,size_t> NgramCounts;  
+typedef map<Phrase,size_t> NgramCounts;
 
 struct Line
 {
@@ -28,7 +29,7 @@ struct Line
 
 struct Vertex;
 
-struct Edge 
+struct Edge
 {
     vector<double> features;
     Phrase phrase;
@@ -57,11 +58,11 @@ struct Interval
     double score;
     double left;
     double right;
-}
-    
-typedef map<Phrase,size_t> NgramCounts;  
-typedef pair<double, vector<int>> boundary;
+};
 
-    
+typedef map<Phrase,size_t> NgramCounts;
+typedef pair<double, vector<int> > boundary;
+
+
 
 
