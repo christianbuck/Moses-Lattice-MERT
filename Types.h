@@ -52,9 +52,15 @@ struct BleuStats
     size_t length;
 };
 
+struct Interval
+{
+    double score;
+    double left;
+    double right;
+}
     
-    
-    typedef map<Phrase,size_t> NgramCounts;  
+typedef map<Phrase,size_t> NgramCounts;  
+typedef pair<double, vector<int>> boundary;
 
     
 
