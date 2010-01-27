@@ -14,6 +14,7 @@ using namespace std;
 regex MosesGraphReader::rx_line0("(\\d+) hyp=(\\d+) stack=(\\d+) ");
 regex MosesGraphReader::rx_line1("back=(\\d+) score=(.*) transition=(.*) \\[ (.*) \\] ");
 regex MosesGraphReader::rx_line4("recombined=(\\d+) ");
+regex MosesGraphReader::rx_line5(" out=(.*) , pC");
 regex MosesGraphReader::rx_line2("\\w+:");
 regex MosesGraphReader::rx_line3("-?\\d+(\\.\\d+)?");
 
@@ -35,13 +36,15 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
             cout << "Line not matching! [" << line << "]" << endl;
             return false;
         }
-        string sentenceIdStr = string(m[1].first, m[1].second);
         string hypIdStr = string(m[2].first, m[2].second);
-
-        size_t sentenceId = lexical_cast<size_t>(sentenceIdStr);
         size_t hypId = lexical_cast<size_t>(hypIdStr);
 
-        if (hypId == 0) break;
+        if (hypId == 0) {
+            string sentenceIdStr = string(m[1].first, m[1].second);
+            size_t sentenceId = lexical_cast<size_t>(sentenceIdStr);
+            cout << "Sentence " << sentenceId << endl;
+            break;
+        }
 
         string suffix = m.suffix();
         if (!regex_search(suffix, m, rx_line1, match_continuous)) {
@@ -49,9 +52,9 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
             return false;
         }
         string backIdStr = string(m[1].first, m[1].second);
-        string featureListStr = string(m[4].first, m[4].second);
-
         size_t backId = lexical_cast<size_t>(backIdStr);
+
+        string featureListStr = string(m[4].first, m[4].second);
 
         // look if there is recombination info
         suffix = m.suffix();
@@ -61,6 +64,12 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 //          cout << "  recombined " << hypId << " to " << recombId << endl;
             hypId = recombId;
         }
+
+        if (!regex_search(suffix, m, rx_line5)) {
+            cout << "Line not matching! [" << suffix << "]" << endl;
+            return false;
+        }
+        string phrase = string(m[1].first, m[1].second);
 
 //      cout << "Parsing feature string [" << featureListStr << "]" << endl;
         vector<double> featureList;
@@ -90,10 +99,11 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
         }
 
         // add the edge to the lattice
-//        cout << "Edge " << backId << " - " << hypId << " Weights " << weightList.size() << endl;
+//        cout << "Edge " << backId << " - " << hypId << " phrase [" << phrase << "]" << endl;
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
         Lattice::Edge &edge = lattice.addEdge(backId, hypId);
         edge.features = featureList;
+        edge.phrase = phrase;
     }
     cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
     return true;

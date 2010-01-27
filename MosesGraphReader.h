@@ -14,5 +14,5 @@ public:
 private:
     std::istream &is;
 
-    static boost::regex rx_line0, rx_line1, rx_line2, rx_line3, rx_line4;
+    static boost::regex rx_line0, rx_line1, rx_line2, rx_line3, rx_line4, rx_line5;
 };
