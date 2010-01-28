@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <limits>
 #include <math.h>
-
+#include <algorithm>
+#include <cassert>
 #include "Types.h"
 #include "BleuScorer.h"
 
@@ -30,82 +31,81 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
     countNGrams(reference,referenceCounts);
 
     for (size_t i = 0; i < K; i++) {
-        Phrase hyp = a[i].p;
+        Phrase hyp = a[i].hypothesis;
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
 
         for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {
-            Phrase& p = hit->first;
-            NgramCounts::const_iterator rit = referenceCounts.find(p)
+            NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
             if (rit != referenceCounts.end()) {
                 // size_t c = rit->second < hit->second] ? rit->second : hit->second;
                 stats[i].counts[hit->first.size()] += std::min(rit->second, hit->second);
             }
         }
-        stats[i].length = hyp.length();
+        stats[i].length = hyp.size();
         stats[i].leftBoundary = a[i].x;
     }
 }
 
 void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedCounts)
 {
+/* takes BleuStats data for a single sentences and appends difference vectors to cumulatedCounts */
     int nStats = stats.size();
     for (size_t i=0;i<nStats;++i) {
         vector<int> diffs(5);
-        int oldCount = 0;
+        int oldCount[5] = {0.0};
         for (size_t n =0; n<4+1;n++) {  // cumulatedCounts[x]->second[4] == lengths
             int curr = n<4 ? stats[i].counts[n] : stats[i].length;
-            diffs[n] = curr - oldCount;
-            oldCount = curr;
+            diffs[n] = curr - oldCount[n];
+            oldCount[n] = curr;
         }
-        cumulatedCount.push_back( boundary(stats[i].leftBoundary,diffs) );
+        cumulatedCounts.push_back( boundary(stats[i].leftBoundary,diffs) );
     }
 }
 
 
-double Bleu(int[] p)
+double Bleu(int p[])
 {
     double score = 0.0;
     for (size_t n=0; n<4; n++) {
-        score += log( p[n]/p[n+4] );
+        score += log(p[n]) - log(p[n+4]);
     }
     return exp(score);
 }
 
-void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterval)
+void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterval) 
 {
-    double p[8];
+    int p[8] = {0};
     int nCounts = cumulatedCounts.size();
-
+    
     bestInterval.score = -numeric_limits<double>::max();
-
-    double oldBoundary = 0.0;
+    double oldBoundary = -numeric_limits<double>::max();
+    
     for (size_t i=0; i<nCounts; i++) {
-        vector<int>& currCounts = cumulatedCounts[i]->second;
-        double newBoundary  cumulatedCounts[i]->first;
-        if (oldBoundary != newBoundary || i==0) {
-            if (i>0) { // check if we shall update bestInterval
-                b = Bleu(p);
-                if (b > bestInterval.score) {
-                    bestInterval.score = b;
-                    bestInterval.left = oldBoundary;
-                    bestInterval.right = newBoundary;
-                }
-            }
-            for (size n=0;n<8;n++) {
-                p[n]=0.0;
+        const vector<int>& currCounts = cumulatedCounts[i].second;
+        double newBoundary = cumulatedCounts[i].first;
+        if (oldBoundary != newBoundary) {
+            // check if we shall update bestInterval
+            double b = Bleu(p);
+            if (b > bestInterval.score) {
+                bestInterval.score = b;
+                bestInterval.left = oldBoundary;
+                bestInterval.right = newBoundary;
             }
             oldBoundary = newBoundary;
         }
-        for (size n=0;n<4;n++) {
-            p[n] += currCounts[n];      // clipped ngram count
-            p[n+4] += std::max(0,currCounts[4]-n); // ngram count
+        for (size_t n=0; n<4; n++) {
+            p[n] += currCounts[n];       // clipped ngram count
+            int len = currCounts[4];
+            p[n+4] += len>n ? len-n : 0; // ngram count
         }
     }
     assert (bestInterval.score > -numeric_limits<double>::max());
 }
 
 
+/* probably not valid anymore ... */
+/*
 void pruneCounts(vector< vector<boundary> >& cumulatedCounts)
 {
     vector<boundary>& counts = cumulatedCounts[i];
@@ -125,6 +125,6 @@ void pruneCounts(vector< vector<boundary> >& cumulatedCounts)
     }
 }
 
-
+*/
 
 

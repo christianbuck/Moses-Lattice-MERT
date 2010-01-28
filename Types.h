@@ -16,7 +16,8 @@ typedef wstring String;
 typedef vector<string> Phrase;
 typedef vector<double> FeatureVector;
 
-typedef map<Phrase, size_t> NgramCounts;
+typedef map<Phrase,int> NgramCounts;
+typedef pair<double, vector<int> > boundary;
 
 struct Line
 {
@@ -67,8 +68,6 @@ struct Interval
     double right;
 };
 
-typedef map<Phrase,size_t> NgramCounts;
-typedef pair<double, vector<int> > boundary;
 
 
 
