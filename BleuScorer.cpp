@@ -59,9 +59,9 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
 {
 /* takes BleuStats data for a single sentences and appends difference vectors to cumulatedCounts */
     int nStats = stats.size();
+    int oldCount[5] = {0};
     for (size_t i=0;i<nStats;++i) {
         vector<int> diffs(5);
-        int oldCount[5] = {0};
         for (size_t n =0; n<4+1;n++) {  // cumulatedCounts[x]->second[4] == lengths
             int curr = n<4 ? stats[i].counts[n] : stats[i].length;
             diffs[n] = curr - oldCount[n];
@@ -81,8 +81,9 @@ double Bleu(int p[])
     return exp(score);
 }
 
-void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterval) 
+void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval) 
 {
+    std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
     int p[8] = {0};
     int nCounts = cumulatedCounts.size();
     cout << "considering " << nCounts << " line intersections" << endl;
@@ -96,11 +97,12 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
         if (oldBoundary != newBoundary) {
             // check if we shall update bestInterval
             double b = Bleu(p);
+            cout << "Interval [" << oldBoundary << " - " << newBoundary << "] score: " << b;
+            cout << "c: " << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << " | " << p[4] << " " << p[5] << " " << p[6] << " " << p[7] << endl;
             if (b > bestInterval.score) {
                 bestInterval.score = b;
                 bestInterval.left = oldBoundary;
                 bestInterval.right = newBoundary;
-                cout << "BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
             }
             oldBoundary = newBoundary;
         }
