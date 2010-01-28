@@ -145,19 +145,18 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
     int nCounts = cumulatedCounts.size();
     
     bestInterval.score = -numeric_limits<double>::max();
+    double oldBoundary = -numeric_limits<double>::max();
     
-    double oldBoundary = 0.0;
     for (size_t i=0; i<nCounts; i++) {
         vector<int>& currCounts = cumulatedCounts[i]->second;
-        double newBoundary  cumulatedCounts[i]->first;
-        if (oldBoundary != newBoundary || i==0) {
-            if (i>0) { // check if we shall update bestInterval
-                b = Bleu(p);
-                if (b > bestInterval.score) {
-                    bestInterval.score = b;
-                    bestInterval.left = oldBoundary;
-                    bestInterval.right = newBoundary;
-                }
+        double newBoundary = cumulatedCounts[i]->first;
+        if (oldBoundary != newBoundary) {
+            // check if we shall update bestInterval
+            b = Bleu(p);
+            if (b > bestInterval.score) {
+                bestInterval.score = b;
+                bestInterval.left = oldBoundary;
+                bestInterval.right = newBoundary;
             }
             for (size n=0;n<8;n++) {
                 p[n]=0.0;
