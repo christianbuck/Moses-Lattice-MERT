@@ -9,12 +9,14 @@
 
 using std::vector;
 using std::numeric_limits;
+using std::algorithm;
 
 void countNGrams(const Phrase& reference, NgramCounts& counts)
 {
     size_t referenceSize = reference.size();
-    for (size_t n=1; n<=4;n++) {
-        for (size_t offset=0; offset<referenceSize-n+1;offset++) {
+    size_t maxN = min(referenceSize,4)
+    for (size_t n=1; n<=maxN;n++) {
+        for (size_t offset=0; offset+n<referenceSize+1;offset++) {
             Phrase ngram;
             for (size_t pos=offset; pos<offset+n;pos++) {
                 ngram.push_back(reference[pos]);
@@ -31,6 +33,7 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
     countNGrams(reference,referenceCounts);
 
     for (size_t i = 0; i < K; i++) {
+        BleuStats lineStats;
         Phrase hyp = a[i].hypothesis;
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
@@ -39,11 +42,12 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
             NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
             if (rit != referenceCounts.end()) {
                 // size_t c = rit->second < hit->second] ? rit->second : hit->second;
-                stats[i].counts[hit->first.size()] += std::min(rit->second, hit->second);
+                lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second); // clipped counts
             }
         }
-        stats[i].length = hyp.size();
-        stats[i].leftBoundary = a[i].x;
+        lineStats.length = hyp.size();
+        lineStats.leftBoundary = a[i].x;
+        stats.push_back(lineStats);
     }
 }
 
