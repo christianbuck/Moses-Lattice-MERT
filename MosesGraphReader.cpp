@@ -2,6 +2,8 @@
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 #include "MosesGraphReader.h"
 
@@ -102,8 +104,9 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 //        cout << "Edge " << backId << " - " << hypId << " phrase [" << phrase << "]" << endl;
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
         Lattice::Edge &edge = lattice.addEdge(backId, hypId);
-        edge.features = featureList;
-        edge.phrase = phrase;
+        edge.h = featureList;
+        split(edge.phrase, phrase, is_any_of(" "));
+        //edge.phrase = phrase;
     }
     cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
     return true;

@@ -16,21 +16,33 @@ using std::cout;
 using std::endl;
 using std::ostream;
 
-void test1()
+void test1(void)
 {
-    ifstream is("/home/karlos/Moses-Lattice-MERT/osg");
-    MosesGraphReader reader(is);
     vector<double> lambdas;
     vector<double> dir;
     for (size_t i = 0; i < 15; i++) {
-        lambdas.push_back(0.5);
-        dir.push_back(0.02);
+        lambdas.push_back(1.0);
+        dir.push_back((i == 9) ? 1.0 : 0.0);
     }
+
+    ifstream is("/home/karlos/Moses-Lattice-MERT/osg");
+    MosesGraphReader reader(is);
+
     while (true) {
+        // read lattice
         Lattice lattice;
         if (!reader.GetNextLattice(lattice)) break;
 
-        latticeEnvelope(lattice, dir, lambdas);
+        // calculate upper envelope
+        vector<Line> a;
+        latticeEnvelope(lattice, dir, lambdas, a);
+
+        // read reference
+        Phrase reference;
+
+        // gather scoring statistics
+        vector<BleuStats> stats;
+        //computeBleuStats(a, reference, stats);
     }
 }
 

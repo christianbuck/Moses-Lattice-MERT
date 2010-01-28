@@ -19,8 +19,8 @@ public:
     };
 
     struct Edge {
-        std::vector<double> features;
-        std::string phrase;
+        FeatureVector h;
+        Phrase phrase;
     };
 
     Edge & addEdge(VertexKey from, VertexKey to) {
@@ -83,4 +83,4 @@ while S is non-empty do
             insert m into S
 */
 
-std::vector<Line> latticeEnvelope(Lattice &lattice, const std::vector<double>& d, const std::vector<double>& lambdas);
+void latticeEnvelope(Lattice &lattice, FeatureVector& d, FeatureVector& lambdas, std::vector<Line> &a);

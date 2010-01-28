@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <vector>
 #include <string>
 #include <map>
@@ -9,10 +10,13 @@ using std::pair;
 using std::vector;
 using std::string;
 using std::wstring;
+using std::numeric_limits;
 
 typedef wstring String;
 typedef vector<string> Phrase;
-typedef map<Phrase,size_t> NgramCounts;
+typedef vector<double> FeatureVector;
+
+typedef map<Phrase, size_t> NgramCounts;
 
 struct Line
 {
@@ -21,6 +25,9 @@ struct Line
     double  m;
     size_t  index;
     Phrase hypothesis;
+
+    Line() : x(-numeric_limits<double>::infinity()), y(0), m(0) {}
+
     static bool CompareBySlope(const Line &a, const Line &b)
     {
         return a.m < b.m;
