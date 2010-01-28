@@ -30,16 +30,16 @@ void countNGrams(const Phrase& reference, NgramCounts& counts)
 
 void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
 {
+    cout << "ref: " << reference << endl;
     size_t K = a.size();
     NgramCounts referenceCounts;
     countNGrams(reference,referenceCounts);
 
     for (size_t i = 0; i < K; i++) {
-        BleuStats lineStats;
         Phrase hyp = a[i].hypothesis;
+        BleuStats lineStats(hyp.size(), a[i].x);
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
-#include <iostream>
         for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {
             NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
             if (rit != referenceCounts.end()) {
@@ -47,8 +47,10 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
                 lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second); // clipped counts
             }
         }
-        lineStats.length = hyp.size();
-        lineStats.leftBoundary = a[i].x;
+        // lineStats.length = hyp.size();
+        // lineStats.leftBoundary = a[i].x;
+        cout << "lstats: l:" << lineStats.length << " lbound: " << lineStats.leftBoundary;
+        cout << " c1 " << lineStats.counts[0] << " c2 " << lineStats.counts[1] << " c3 " << lineStats.counts[2] << " c4 " << lineStats.counts[3] << endl;
         stats.push_back(lineStats);
     }
 }
@@ -59,7 +61,7 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
     int nStats = stats.size();
     for (size_t i=0;i<nStats;++i) {
         vector<int> diffs(5);
-        int oldCount[5] = {0.0};
+        int oldCount[5] = {0};
         for (size_t n =0; n<4+1;n++) {  // cumulatedCounts[x]->second[4] == lengths
             int curr = n<4 ? stats[i].counts[n] : stats[i].length;
             diffs[n] = curr - oldCount[n];
@@ -72,7 +74,7 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
 
 double Bleu(int p[])
 {
-    double score = 0.0;
+    double score = 1.0;
     for (size_t n=0; n<4; n++) {
         score += log(p[n]) - log(p[n+4]);
     }
