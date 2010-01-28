@@ -30,7 +30,7 @@ void countNGrams(const Phrase& reference, NgramCounts& counts)
 
 void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
 {
-    cout << "ref: " << reference << endl;
+//    cout << "ref: " << reference << endl;
     size_t K = a.size();
     NgramCounts referenceCounts;
     countNGrams(reference,referenceCounts);
@@ -86,16 +86,16 @@ double Bleu(int p[])
     return exp(score/bleuOrder);
 }
 
-void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval) 
+void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
 {
     std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
     int p[bleuOrder*2] = {0};
     int nCounts = cumulatedCounts.size();
     cout << "considering " << nCounts << " line intersections" << endl;
-    
+
     bestInterval.score = -numeric_limits<double>::infinity();
     double oldBoundary = -numeric_limits<double>::infinity();
-    
+
     for (size_t i=0; i<nCounts; i++) {
         const vector<int>& currCounts = cumulatedCounts[i].second;
         double newBoundary = cumulatedCounts[i].first;
@@ -117,7 +117,7 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
     }
     assert (bestInterval.score > -numeric_limits<double>::infinity());
     cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
-    
+
 }
 
 
