@@ -4,13 +4,14 @@
 #include <vector>
 #include <string>
 #include <map>
-
+#include <iostream>
 using std::map;
 using std::pair;
 using std::vector;
 using std::string;
 using std::wstring;
 using std::numeric_limits;
+using std::ostream;
 
 typedef wstring String;
 typedef vector<string> Phrase;
@@ -59,6 +60,12 @@ struct BleuStats
     double leftBoundary;
     size_t counts[4];
     size_t length;
+
+    BleuStats(const size_t length, const double leftBoundary) {
+        this->leftBoundary = leftBoundary;
+        this->length = length;
+        for (size_t n = 0; n < 4; ++n) { counts[n]=0; }
+    }
 };
 
 struct Interval
@@ -68,7 +75,7 @@ struct Interval
     double right;
 };
 
-
+ostream & operator << (ostream &os, const Phrase& p); 
 
 
 
