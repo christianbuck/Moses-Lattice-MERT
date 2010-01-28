@@ -85,8 +85,8 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
     int nCounts = cumulatedCounts.size();
     cout << "considering " << nCounts << " line intersections" << endl;
     
-    bestInterval.score = -numeric_limits<double>::max();
-    double oldBoundary = -numeric_limits<double>::max();
+    bestInterval.score = -numeric_limits<double>::infinity();
+    double oldBoundary = -numeric_limits<double>::infinity();
     
     for (size_t i=0; i<nCounts; i++) {
         const vector<int>& currCounts = cumulatedCounts[i].second;
@@ -108,7 +108,7 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
             p[n+4] += len>n ? len-n : 0; // ngram count
         }
     }
-    assert (bestInterval.score > -numeric_limits<double>::max());
+    assert (bestInterval.score > -numeric_limits<double>::infinity());
     cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
     
 }
