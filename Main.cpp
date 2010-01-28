@@ -4,17 +4,30 @@
 #include <string>
 #include <list>
 
+#include <boost/regex.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
 #include "MosesGraphReader.h"
+#include "BleuScorer.h"
 #include "Lattice.h"
 #include "Types.h"
 
 using std::ifstream;
+using std::istream;
 using std::string;
 using std::vector;
 using std::list;
 using std::cout;
 using std::endl;
 using std::ostream;
+
+void readReference(istream &is_ref, Phrase &reference)
+{
+    string line;
+    getline(is_ref, line);
+    boost::split(reference, line, boost::is_any_of(" "));
+}
 
 void test1(void)
 {
@@ -25,25 +38,31 @@ void test1(void)
         dir.push_back((i == 9) ? 1.0 : 0.0);
     }
 
-    ifstream is("/home/karlos/Moses-Lattice-MERT/osg");
-    MosesGraphReader reader(is);
+    ifstream is_ref("/home/karlos/Moses-Lattice-MERT/case1.ref");
+
+    ifstream is_osg("/home/karlos/Moses-Lattice-MERT/case1.osg");
+    MosesGraphReader reader(is_osg);
+
+    vector<boundary> cumulatedCounts;
 
     while (true) {
-        // read lattice
         Lattice lattice;
         if (!reader.GetNextLattice(lattice)) break;
 
-        // calculate upper envelope
-        vector<Line> a;
-        latticeEnvelope(lattice, dir, lambdas, a);
+        vector<Line> envelope;
+        latticeEnvelope(lattice, dir, lambdas, envelope);
 
-        // read reference
         Phrase reference;
+        readReference(is_ref, reference);
+        // read corresponding reference translation
 
-        // gather scoring statistics
         vector<BleuStats> stats;
-        //computeBleuStats(a, reference, stats);
+        computeBleuStats(envelope, reference, stats);
+
+        accumulateBleu(stats, cumulatedCounts);
     }
+    Interval bestInterval;
+    optimizeBleu(cumulatedCounts, bestInterval);
 }
 
 int main(int argc, char **argv)
