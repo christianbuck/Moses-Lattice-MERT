@@ -4,17 +4,19 @@
 #include <math.h>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include "Types.h"
 #include "BleuScorer.h"
 
 using std::vector;
 using std::numeric_limits;
-using std::algorithm;
+using std::cout;
+using std::endl;
 
 void countNGrams(const Phrase& reference, NgramCounts& counts)
 {
     size_t referenceSize = reference.size();
-    size_t maxN = min(referenceSize,4)
+    size_t maxN = std::min(referenceSize,(size_t)4);
     for (size_t n=1; n<=maxN;n++) {
         for (size_t offset=0; offset+n<referenceSize+1;offset++) {
             Phrase ngram;
@@ -37,7 +39,7 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
         Phrase hyp = a[i].hypothesis;
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
-
+#include <iostream>
         for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {
             NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
             if (rit != referenceCounts.end()) {
@@ -81,6 +83,7 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
 {
     int p[8] = {0};
     int nCounts = cumulatedCounts.size();
+    cout << "considering " << nCounts << " line intersections" << endl;
     
     bestInterval.score = -numeric_limits<double>::max();
     double oldBoundary = -numeric_limits<double>::max();
@@ -95,6 +98,7 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
                 bestInterval.score = b;
                 bestInterval.left = oldBoundary;
                 bestInterval.right = newBoundary;
+                cout << "BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
             }
             oldBoundary = newBoundary;
         }
@@ -105,6 +109,8 @@ void optimizeBleu(const vector<boundary>& cumulatedCounts, Interval& bestInterva
         }
     }
     assert (bestInterval.score > -numeric_limits<double>::max());
+    cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
+    
 }
 
 
