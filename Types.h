@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include <iostream>
+// #include "BleuScorer.h"
+
 using std::map;
 using std::pair;
 using std::vector;
@@ -55,16 +57,17 @@ struct Vertex
     int nIncomingVisited;
 };
 
+const size_t bleuOrder = 4;
 struct BleuStats
 {
     double leftBoundary;
-    size_t counts[4];
+    size_t counts[bleuOrder*2];
     size_t length;
 
     BleuStats(const size_t length, const double leftBoundary) {
         this->leftBoundary = leftBoundary;
         this->length = length;
-        for (size_t n = 0; n < 4; ++n) { counts[n]=0; }
+        for (size_t n = 0; n < bleuOrder; ++n) { counts[n]=0; }
     }
 };
 
