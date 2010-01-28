@@ -27,20 +27,36 @@ void readReference(istream &is_ref, Phrase &reference)
     string line;
     getline(is_ref, line);
     boost::split(reference, line, boost::is_any_of(" "));
+    for (size_t i = 0; i < reference.size(); i++)
+        assert( reference[i].length() > 0 );
 }
 
 void test1(void)
 {
     vector<double> lambdas;
     vector<double> dir;
+    lambdas.push_back(-0.21);
+    lambdas.push_back(1.0);
+    lambdas.push_back(0.02);
+    lambdas.push_back(0.05);
+    lambdas.push_back(0.01);
+    lambdas.push_back(0.21);
+    lambdas.push_back(0.05);
+    lambdas.push_back(0.05);
+    lambdas.push_back(0.15);
+    lambdas.push_back(0.08);
+    lambdas.push_back(0.02);
+    lambdas.push_back(0.05);
+    lambdas.push_back(0.06);
+    lambdas.push_back(0.03);
+    lambdas.push_back(0.01);
     for (size_t i = 0; i < 15; i++) {
-        lambdas.push_back(1.0);
+        //lambdas.push_back(1.0);
         dir.push_back((i == 9) ? 1.0 : 0.0);
     }
 
-    ifstream is_ref("/home/karlos/Moses-Lattice-MERT/case1.ref");
-
-    ifstream is_osg("/home/karlos/Moses-Lattice-MERT/case1.osg");
+    ifstream is_ref("/home/karlos/Moses-Lattice-MERT/case2.ref");
+    ifstream is_osg("/home/karlos/Moses-Lattice-MERT/case2.osg");
     MosesGraphReader reader(is_osg);
 
     vector<boundary> cumulatedCounts;
@@ -49,12 +65,12 @@ void test1(void)
         Lattice lattice;
         if (!reader.GetNextLattice(lattice)) break;
 
-        vector<Line> envelope;
-        latticeEnvelope(lattice, dir, lambdas, envelope);
-
         Phrase reference;
         readReference(is_ref, reference);
-        // read corresponding reference translation
+        cout << "Reference: [" << reference << "]" << endl;
+
+        vector<Line> envelope;
+        latticeEnvelope(lattice, dir, lambdas, envelope);
 
         vector<BleuStats> stats;
         computeBleuStats(envelope, reference, stats);
