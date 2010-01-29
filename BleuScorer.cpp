@@ -28,7 +28,7 @@ void countNGrams(const Phrase& reference, NgramCounts& counts)
     }
 }
 
-void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
+void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
 {
 //    cout << "ref: " << reference << endl;
     size_t K = a.size();
@@ -36,7 +36,8 @@ void computeBleuStats(const vector<Line>& a, const Phrase& reference, vector<Ble
     countNGrams(reference,referenceCounts);
 
     for (size_t i = 0; i < K; i++) {
-        Phrase hyp = a[i].hypothesis;
+        Phrase hyp;
+        a[i].getHypothesis(lattice, hyp);
         BleuStats lineStats(hyp.size(), a[i].x);
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
