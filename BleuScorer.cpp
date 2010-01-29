@@ -1,7 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -50,8 +50,8 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
         }
         // lineStats.length = hyp.size();
         // lineStats.leftBoundary = a[i].x;
-        cout << "lstats: l:" << lineStats.length << " lbound: " << lineStats.leftBoundary;
-        cout << " c1 " << lineStats.counts[0] << " c2 " << lineStats.counts[1] << " c3 " << lineStats.counts[2] << " c4 " << lineStats.counts[3] << endl;
+        // cout << "lstats: l:" << lineStats.length << " lbound: " << lineStats.leftBoundary;
+        // cout << " c1 " << lineStats.counts[0] << " c2 " << lineStats.counts[1] << " c3 " << lineStats.counts[2] << " c4 " << lineStats.counts[3] << endl;
         stats.push_back(lineStats);
     }
 }
@@ -81,6 +81,9 @@ double Bleu(int p[])
 {
     double score = 0.0;
     for (size_t n=0; n<bleuOrder; n++) {
+        if (p[n] == 0) {
+            return 0.0
+        }
         // score += log((double)p[n] / (double)p[n+bleuOrder]);
         score += log((double)p[n]) - log((double)p[n+bleuOrder]);
     }
@@ -103,8 +106,8 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
         if (oldBoundary != newBoundary) {
             // check if we shall update bestInterval
             double bleuScore = Bleu(p);
-            cout << "Interval [" << oldBoundary << " - " << newBoundary << "] score: " << bleuScore;
-            cout << "c: " << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << " | " << p[4] << " " << p[5] << " " << p[6] << " " << p[7] << endl;
+            // cout << "Interval [" << oldBoundary << " - " << newBoundary << "] score: " << bleuScore;
+            // cout << "c: " << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << " | " << p[4] << " " << p[5] << " " << p[6] << " " << p[7] << endl;
             if (bleuScore > bestInterval.score) {
                 bestInterval.score = bleuScore;
                 bestInterval.left = oldBoundary;
