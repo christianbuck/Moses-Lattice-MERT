@@ -13,17 +13,19 @@ using std::ostream;
 using std::cout;
 using std::endl;
 
-double dotProduct(const vector<double>& a,const vector<double>& b)
+template<class F>
+double dotProduct(const vector<F>& a,const vector<F>& b)
 {
     size_t d = a.size();
     assert(b.size() == d);
-    double p = 0.0;
+    F p = 0.0;
     for (size_t i=0;i<d;++i) {
         p += a[i]*b[i];
     }
     return p;
 }
 
+/*
 ostream & operator << (ostream &os, const Phrase& p) {
     for (size_t i = 0; i < p.size(); i++) {
         if (i > 0) os << " ";
@@ -31,6 +33,7 @@ ostream & operator << (ostream &os, const Phrase& p) {
     }
     return os;
 }
+*/
 
 
 // Implementation of Algorithm 1

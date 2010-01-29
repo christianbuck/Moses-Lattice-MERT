@@ -17,7 +17,8 @@ using std::ostream;
 
 typedef wstring String;
 typedef vector<string> Phrase;
-typedef vector<double> FeatureVector;
+typedef double FeatureValue; 
+typedef vector<FeatureValue> FeatureVector;
 
 typedef map<Phrase,int> NgramCounts;
 typedef pair<double, vector<int> > boundary;

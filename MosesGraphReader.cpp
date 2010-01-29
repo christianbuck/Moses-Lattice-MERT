@@ -8,7 +8,7 @@
 #include <boost/algorithm/string/classification.hpp>
 
 #include "MosesGraphReader.h"
-
+#include "Types.h"
 using namespace boost;
 using namespace std;
 
@@ -81,7 +81,7 @@ void MosesGraphReader::getFeatures(string &suffix, Entry &e)
 
         // check if it is not a descriptor
         if (token[token.size() - 1] != ':') {
-            double feature = lexical_cast<double>(token);
+            FeatureValue feature = lexical_cast<FeatureValue>(token);
             e.features.push_back(feature);
 //            cout << "  [" << feature << "]" << endl;
         }

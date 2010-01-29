@@ -59,7 +59,7 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
 void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedCounts)
 {
 /* takes BleuStats data for a single sentences and appends difference vectors to cumulatedCounts */
-    int nStats = stats.size();
+    size_t nStats = stats.size();
     int oldCount[bleuOrder*2] = {0};
     for (size_t i=0;i<nStats;++i) {
         vector<int> diffs(bleuOrder*2);
@@ -91,7 +91,7 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
 {
     std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
     int p[bleuOrder*2] = {0};
-    int nCounts = cumulatedCounts.size();
+    size_t nCounts = cumulatedCounts.size();
     cout << "considering " << nCounts << " line intersections" << endl;
 
     bestInterval.score = -numeric_limits<double>::infinity();
