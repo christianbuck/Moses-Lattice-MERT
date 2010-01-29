@@ -13,17 +13,19 @@ using std::ostream;
 using std::cout;
 using std::endl;
 
-double dotProduct(const vector<double>& a,const vector<double>& b)
+template<class F>
+double dotProduct(const vector<F>& a,const vector<F>& b)
 {
     size_t d = a.size();
     assert(b.size() == d);
-    double p = 0.0;
+    F p = 0.0;
     for (size_t i=0;i<d;++i) {
         p += a[i]*b[i];
     }
     return p;
 }
 
+/*
 ostream & operator << (ostream &os, const Phrase& p) {
     for (size_t i = 0; i < p.size(); i++) {
         if (i > 0) os << " ";
@@ -31,6 +33,7 @@ ostream & operator << (ostream &os, const Phrase& p) {
     }
     return os;
 }
+*/
 
 
 // Implementation of Algorithm 1
@@ -64,10 +67,10 @@ void sweepLine(vector<Line> &a)
         a[j++] = l;
     }
 //    cout << "  SweepLine: |a| = " << a.size() << " -> " << j << endl;
-    for (size_t i = 0; i < j; i++) {
-        Line &l = a[i];
+//    for (size_t i = 0; i < j; i++) {
+//        Line &l = a[i];
 //        cout << "    line " << l.x << " " << l.hypothesis << endl;
-    }
+//    }
     a.resize(j);
 }
 
@@ -124,11 +127,11 @@ void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda
         }
         v_it.findNext();
     }
-    size_t K = a.size();
-    for (size_t i = 0; i < K; i++) {
-        Line &l = a[i];
+//    size_t K = a.size();
+//    for (size_t i = 0; i < K; i++) {
+//        Line &l = a[i];
 //        cout << "  line " << l.x << endl;
 //        cout << "  line " << l.x << " " << l.hypothesis << endl;
-    }
+//    }
 }
 
