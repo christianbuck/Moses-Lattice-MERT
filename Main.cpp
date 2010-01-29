@@ -95,8 +95,20 @@ Result doIteration(const Parameters &params)
     }
     cout << endl << "FINAL BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
     Result result(bestInterval.score);
+    double bestVal;
+    if (bestInterval.right == numeric_limits<double>::infinity() && bestInterval.left == -numeric_limits<double>::infinity()) {
+        bestVal = 0.0;
+    } else {
+        if (bestInterval.left == -numeric_limits<double>::infinity()) {
+            bestVal = bestInterval.right - params.eps;
+        } else if (bestInterval.right == numeric_limits<double>::infinity()) {
+            bestVal = bestInterval.left + params.eps;
+        } else  {
+            bestVal = (bestInterval.right+bestInterval.left)/2;
+        }
+    }
     for (size_t i=0;i<nDimensions;i++) {
-        result.lambdas.push_back(params.lambdas[i] + directions[bestDirection][i] * (bestInterval.right+bestInterval.left)/2);
+        result.lambdas.push_back(params.lambdas[i] + directions[bestDirection][i] * bestVal);
     }
     return result;
 }
