@@ -49,6 +49,18 @@ struct Interval
     double right;
 };
 
+struct Result
+{
+    double score;
+    FeatureVector lambdas;
+    Result(double s) {
+        score = s;
+    }
+};
+    
+    
+    
+    
 ostream & operator << (ostream &os, const Phrase& p);
 
 

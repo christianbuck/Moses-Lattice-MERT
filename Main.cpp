@@ -32,14 +32,16 @@ void readReference(istream &is_ref, Phrase &reference)
         assert( reference[i].length() > 0 );
 }
 
-void doMagic(const Parameters &params)
+Result doIteration(const Parameters &params)
 {
 	size_t nDimensions = params.lambdas.size();
 	size_t nDirections = nDimensions; // might be higher of lower in case of random directions
+//	nDirections = 1;
     vector< vector<double> > directions(nDirections);
     for (size_t d=0;d<nDirections;d++) {
         for (size_t i = 0; i < nDimensions; i++) {
             directions[d].push_back((i == d) ? 1.0 : 0.0);
+//            directions[d].push_back((i == 9) ? 1.0 : 0.0);
         }
     }
 
@@ -92,6 +94,11 @@ void doMagic(const Parameters &params)
         cout << directions[bestDirection][i];
     }
     cout << endl << "FINAL BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
+    Result result(bestInterval.score);
+    for (size_t i=0;i<nDimensions;i++) {
+        result.lambdas.push_back(params.lambdas[i] + directions[bestDirection][i] * (bestInterval.right+bestInterval.left)/2);
+    }
+    return result;
 }
 
 void printParams(const Parameters &params)
@@ -105,6 +112,13 @@ void printParams(const Parameters &params)
     cout << endl;
 }
 
+void updateParameters(Parameters &params, FeatureVector &newLambdas) 
+{
+    for (size_t i=0; i<newLambdas.size();i++) {
+        params.lambdas[i] = newLambdas[i];
+    }
+}
+
 int main(int argc, char **argv)
 {
     Parameters params;
@@ -113,7 +127,21 @@ int main(int argc, char **argv)
 
     printParams(params);
 
-    doMagic(params);
+    double oldScore=0.0;
+    for (size_t iteration=0; iteration<params.maxIters; iteration++) {
+        Result res = doIteration(params);
+        updateParameters(params, res.lambdas);
+        printParams(params);
+        if (iteration>0 && (res.score - oldScore) < params.eps) {
+            cout << "bleu improvement too small (" << res.score-oldScore << ")- i will quit. " << endl;
+        }
+        oldScore = res.score;
+    }
+
+    cout << "NEW LAMBDAS: ";
+    for (size_t i = 0; i < params.lambdas.size(); i++)
+        cout << params.lambdas[i] << " ";
+    cout << endl;
 
     return 0;
 }
