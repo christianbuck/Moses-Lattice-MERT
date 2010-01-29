@@ -14,6 +14,7 @@ static struct argp_option options[] = {
     {"verbose",  'v', "level",   0, "Produce verbose output" },
 //    {"quiet",    'q', 0,      0,  "Don't produce any output" },
 //    {"silent",   's', 0,      OPTION_ALIAS },
+    {"reference", 'r', "file", 0, "Reference translation file" },
     {"lambda",   'l', "weights", 0, "Feature weights (lambda vector)" },
     { 0 }
 };
@@ -47,6 +48,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
            arguments->verbose = atoi(arg);
            break;
 
+         case 'r':
+           arguments->referencePath = arg;
+           break;
+
          case 'l':
            arguments->parseLambdas(arg);
            break;
@@ -59,6 +64,8 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
          case ARGP_KEY_END:
            //if (state->arg_num < 1)
            //    argp_usage (state);
+           if (arguments->referencePath == 0)
+                argp_usage(state);
            break;
 
          default:

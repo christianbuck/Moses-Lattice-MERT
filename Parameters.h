@@ -6,12 +6,13 @@ class Parameters
 {
 public:
     const char *inputPath;
+    const char *referencePath;
     //const char *lambda;
     FeatureVector lambdas;
     int  verbose;
 
     Parameters()
-        : inputPath("-"),
+        : inputPath("-"), referencePath(0),
             verbose(0)
     {}
 
