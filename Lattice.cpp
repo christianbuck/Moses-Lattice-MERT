@@ -119,8 +119,7 @@ void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda
                 lines[j].m += dot_dir;
                 lines[j].y += dot_lambda;
 //                cout << "    edge phrase " << edge.phrase << endl;
-                lines[j].hypothesis.insert(
-                    lines[j].hypothesis.end(), edge.phrase.begin(), edge.phrase.end());
+                lines[j].path.push_back(edgekey);
             }
         }
         v_it.findNext();
@@ -128,7 +127,8 @@ void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda
     size_t K = a.size();
     for (size_t i = 0; i < K; i++) {
         Line &l = a[i];
-        cout << "  line " << l.x << " " << l.hypothesis << endl;
+//        cout << "  line " << l.x << endl;
+//        cout << "  line " << l.x << " " << l.hypothesis << endl;
     }
 }
 

@@ -83,4 +83,26 @@ while S is non-empty do
             insert m into S
 */
 
+struct Line
+{
+    double  x;      // left boundary
+    double  y;      // line offset
+    double  m;      // line slope
+    vector<pair<size_t, size_t> > path; // path through the graph
+
+    Line() : x(-numeric_limits<double>::infinity()), y(0), m(0) {}
+
+    void getHypothesis(Lattice &lattice, Phrase &hypothesis) const {
+        for (size_t i = 0; i < path.size(); i++) {
+            const Phrase &phrase = lattice.getEdge(path[i]).phrase;
+            hypothesis.insert(hypothesis.end(), phrase.begin(), phrase.end());
+        }
+    }
+
+    static bool CompareBySlope(const Line &a, const Line &b)
+    {
+        return a.m < b.m;
+    }
+};
+
 void latticeEnvelope(Lattice &lattice, FeatureVector& d, FeatureVector& lambdas, std::vector<Line> &a);
