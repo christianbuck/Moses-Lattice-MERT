@@ -82,7 +82,7 @@ double Bleu(int p[])
     double score = 0.0;
     for (size_t n=0; n<bleuOrder; n++) {
         if (p[n] == 0) {
-            return 0.0
+            return 0.0;
         }
         // score += log((double)p[n] / (double)p[n+bleuOrder]);
         score += log((double)p[n]) - log((double)p[n+bleuOrder]);
