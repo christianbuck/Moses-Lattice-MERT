@@ -74,7 +74,7 @@ void sweepLine(vector<Line> &a)
     a.resize(j);
 }
 
-void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda, vector<Line> &a)
+void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &a)
 {
     map<Lattice::EdgeKey, vector<Line> > L;
 
@@ -118,11 +118,11 @@ void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda
 
             vector<Line> &lines = L[edgekey];
             lines = a;
-            for (size_t j = 0; j < a.size(); ++j) {
-                lines[j].m += dot_dir;
-                lines[j].y += dot_lambda;
+            for (vector<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
+                lit->m += dot_dir;
+                lit->y += dot_lambda;
+                lit->path.push_back(edgekey);
 //                cout << "    edge phrase " << edge.phrase << endl;
-                lines[j].path.push_back(edgekey);
             }
         }
         v_it.findNext();

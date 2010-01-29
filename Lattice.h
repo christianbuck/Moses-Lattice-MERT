@@ -105,4 +105,4 @@ struct Line
     }
 };
 
-void latticeEnvelope(Lattice &lattice, FeatureVector& d, FeatureVector& lambdas, std::vector<Line> &a);
+void latticeEnvelope(Lattice &lattice, const FeatureVector& d, const FeatureVector& lambdas, std::vector<Line> &a);
