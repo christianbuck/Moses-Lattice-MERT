@@ -101,11 +101,10 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
     double oldBoundary = -numeric_limits<double>::infinity();
 
     for (size_t i=0; i<nCounts; i++) {
-        const vector<int>& currCounts = cumulatedCounts[i].second;
         double newBoundary = cumulatedCounts[i].first;
         if (oldBoundary != newBoundary) {
             // check if we shall update bestInterval
-            double bleuScore = Bleu(p);
+            double bleuScore = Bleu(p);  // if this is better than the old one, that last interval was good
             // cout << "Interval [" << oldBoundary << " - " << newBoundary << "] score: " << bleuScore;
             // cout << "c: " << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << " | " << p[4] << " " << p[5] << " " << p[6] << " " << p[7] << endl;
             if (bleuScore > bestInterval.score) {
@@ -115,9 +114,17 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
             }
             oldBoundary = newBoundary;
         }
+        const vector<int>& currCounts = cumulatedCounts[i].second;
         for (size_t n=0; n<bleuOrder*2; n++) {
             p[n] += currCounts[n];
         }
+    }
+    double bleuScore = Bleu(p);
+    if (bleuScore > bestInterval.score) {
+        // This means either the last element was the best one or we only have parallel lines
+        bestInterval.left = oldBoundary;
+        bestInterval.right = numeric_limits<double>::infinity();
+        bestInterval.score = bleuScore;
     }
     assert (bestInterval.score > -numeric_limits<double>::infinity());
     cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
