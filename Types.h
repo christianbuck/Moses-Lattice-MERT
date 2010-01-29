@@ -39,6 +39,11 @@ struct BleuStats
 
 struct Interval
 {
+    Interval() {
+        score = -numeric_limits<double>::infinity();
+        left = 0.0;
+        right = 0.0;
+    }
     double score;
     double left;
     double right;

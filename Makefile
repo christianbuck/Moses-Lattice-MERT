@@ -2,8 +2,8 @@ CXX = cc
 
 OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o Parameters.o
 
-CXXFLAGS = -Wall -Wfatal-errors -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES
-LDFLAGS =  -lstdc++ -lboost_regex 
+CXXFLAGS = -Wall -Wfatal-errors -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES 
+LDFLAGS =  -lstdc++ -lboost_regex
 
 GPROF2DOT = ./gprof2dot.py
 
@@ -30,11 +30,11 @@ LatticeMERT: $(OBJS) Makefile
 	@echo "***>" LatticeMERT "<***"
 	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT  
 
-%.o : %.cpp
+%.o : %.cpp Types.h
 	@echo "***" $< "***"
 	$(CXX) $(CXXFLAGS) -c $< -o $@  
 
-.PHONY : clean prof debug again graph
+.PHONY : clean prof debug graph
 clean:
 	rm -f *.o *~ LatticeMERT
 
@@ -50,4 +50,3 @@ prof: Makefile
 graph: gmon.out
 	gprof ./LatticeMERT | $(GPROF2DOT) -s | dot -Tpdf -o callgraph.pdf
 
-again: clean LatticeMERT
