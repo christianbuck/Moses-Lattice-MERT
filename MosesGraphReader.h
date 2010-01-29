@@ -4,7 +4,7 @@
 #include <boost/regex.hpp>
 
 #include "Lattice.h"
-
+#include "Types.h"
 class MosesGraphReader {
 public:
     MosesGraphReader(std::istream &is);
@@ -20,8 +20,8 @@ private:
         size_t sentence;
         size_t hyp;
         size_t back;
-        vector<double> features;
-        vector<string> phrase;
+        FeatureVector features;
+        Phrase phrase;
     };
 
     void parseLine(const string &line, Entry &e);
