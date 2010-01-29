@@ -1,6 +1,6 @@
 CXX = cc
 
-OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o
+OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Parameters.o Main.o
 
 CXXFLAGS = -Wall -Wfatal-errors -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES 
 LDFLAGS =  -lstdc++ -lboost_regex
@@ -28,7 +28,7 @@ LatticeMERT: $(OBJS) Makefile
 	@echo "***>" LatticeMERT "<***"
 	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT  
 
-%.o : %.cpp
+%.o : %.cpp Types.h
 	@echo "***" $< "***"
 	$(CXX) $(CXXFLAGS) -c $< -o $@  
 
