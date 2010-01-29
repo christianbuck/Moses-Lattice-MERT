@@ -8,11 +8,12 @@
 class Lattice {
 public:
     typedef size_t VertexKey;
-    typedef std::pair<VertexKey, VertexKey> EdgeKey;
+    typedef size_t EdgeKey;
+    //typedef std::pair<VertexKey, VertexKey> EdgeKey;
 
     struct Vertex {
-        std::vector<VertexKey> in;
-        std::vector<VertexKey> out;
+        std::vector<EdgeKey> in;
+        std::vector<EdgeKey> out;
         size_t in_visited;
 
         Vertex() : in_visited(0) {}
@@ -21,13 +22,15 @@ public:
     struct Edge {
         FeatureVector h;
         Phrase phrase;
+        VertexKey from;
+        VertexKey to;
     };
 
-    Edge & addEdge(VertexKey from, VertexKey to) {
-        vertices[from].out.push_back(to);
-        vertices[to].in.push_back(from);
-        Edge & edge = edges[EdgeKey(from, to)];
-        return edge;
+    void addEdge(const Edge &edge) {
+        EdgeKey key = edges.size();
+        vertices[edge.from].out.push_back(key);
+        vertices[edge.to].in.push_back(key);
+        edges.push_back(edge);
     }
 
     Vertex & getVertex(VertexKey key) { return vertices[key]; }
@@ -37,7 +40,8 @@ public:
 
 private:
     std::map<VertexKey, Vertex> vertices;
-    std::map<EdgeKey, Edge> edges;
+    //std::map<EdgeKey, Edge> edges;
+    std::vector<Edge> edges;
 };
 
 class TopoIterator {
@@ -53,9 +57,10 @@ public:
         Lattice::Vertex & v = lattice.getVertex(pendingVertices.back());
         pendingVertices.pop_back();
         for (size_t i = 0; i < v.out.size(); ++i) {
-            Lattice::Vertex& vEnd = lattice.getVertex(v.out[i]);
+            Lattice::Edge &edge = lattice.getEdge(v.out[i]);
+            Lattice::Vertex& vEnd = lattice.getVertex(edge.to);
             if (++vEnd.in_visited % vEnd.in.size() == 0) {
-                pendingVertices.push_back(v.out[i]);
+                pendingVertices.push_back(edge.to);
             }
         }
     }
@@ -88,7 +93,7 @@ struct Line
     double  x;      // left boundary
     double  y;      // line offset
     double  m;      // line slope
-    vector<pair<size_t, size_t> > path; // path through the graph
+    vector<Lattice::EdgeKey> path; // path through the graph
 
     Line() : x(-numeric_limits<double>::infinity()), y(0), m(0) {}
 

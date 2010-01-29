@@ -45,8 +45,6 @@ void sweepLine(list<Line> &a)
 {
     a.sort(Line::CompareBySlope);
 
-    size_t j = 0;
-    size_t K = a.size();
     list<Line>::iterator it2 = a.begin();
     while (it2 != a.end()) {
         if (it2 != a.begin()) {
@@ -81,7 +79,8 @@ void sweepLine(list<Line> &a)
 
 void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &avec)
 {
-    map<Lattice::EdgeKey, list<Line> > L;
+    list<Line> *L = new list<Line>[lattice.getEdgeCount()];
+//    map<Lattice::EdgeKey, list<Line> > L;
 
     vector<size_t> start;
     start.push_back(0);
@@ -104,25 +103,25 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
         }
         else {
             for (size_t i=0; i<v.in.size();++i) {
-                Lattice::EdgeKey edgekey(v.in[i], vkey);
+                Lattice::EdgeKey edgekey = v.in[i];
 
-                map<Lattice::EdgeKey, list<Line> >::iterator it = L.find(edgekey);
-                if (it == L.end()) continue;
+                //map<Lattice::EdgeKey, list<Line> >::iterator it = L.find(edgekey);
+                //if (it == L.end()) continue;
 
-                a.splice(a.end(), it->second );
-                L.erase(it);
+                //a.splice(a.end(), it->second );
+                //L.erase(it);
+
+                a.splice(a.end(), L[edgekey]);
             }
             sweepLine(a);
-//            for (size_t i=0; i<v.in.size();++i) {
-//                Lattice::EdgeKey edgekey(v.in[i], vkey);
-//            }
         }
 
         for (size_t i=0; i<v.out.size();++i) {
-            Lattice::EdgeKey edgekey(vkey, v.out[i]);
+            Lattice::EdgeKey edgekey = v.out[i];
             Lattice::Edge &edge = lattice.getEdge(edgekey);
 
             double dot_dir = dotProduct(edge.h, dir);
+            //double dot_dir = edge.h[dim];
             double dot_lambda = dotProduct(edge.h, lambda);
 
             list<Line> &lines = (L[edgekey] = a);
@@ -138,6 +137,7 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
     }
 
     avec.insert(avec.end(), a.begin(), a.end());
+    delete[] L;
 
 //    size_t K = a.size();
 //    for (size_t i = 0; i < K; i++) {
