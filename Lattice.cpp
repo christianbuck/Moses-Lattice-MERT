@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <cassert>
 
+#include <list>
+
 #include "Lattice.h"
 #include "Types.h"
 
 using std::numeric_limits;
 using std::vector;
+using std::list;
 using std::map;
 using std::ostream;
 using std::cout;
@@ -25,7 +28,6 @@ double dotProduct(const vector<F>& a,const vector<F>& b)
     return p;
 }
 
-/*
 ostream & operator << (ostream &os, const Phrase& p) {
     for (size_t i = 0; i < p.size(); i++) {
         if (i > 0) os << " ";
@@ -33,55 +35,60 @@ ostream & operator << (ostream &os, const Phrase& p) {
     }
     return os;
 }
-*/
 
 
 // Implementation of Algorithm 1
 // Calculates the upper envelope for a set of lines
 // The algorithm modifies the line array in place
 
-void sweepLine(vector<Line> &a)
+void sweepLine(list<Line> &a)
 {
-    sort (a.begin(), a.end(), Line::CompareBySlope);
+    a.sort(Line::CompareBySlope);
 
     size_t j = 0;
     size_t K = a.size();
-    for (size_t i = 0; i < K; i++) {
-        Line &l = a[i];
-//        cout << "    line " << l.m << " x + " << l.y << " " << l.hypothesis << endl;
-        l.x = -numeric_limits<double>::infinity();
-        if (0 < j) {
-            if (a[j - 1].m == l.m) {
-                if (l.y <= a[j - 1].y) continue;
-                --j;
+    list<Line>::iterator it2 = a.begin();
+    while (it2 != a.end()) {
+        if (it2 != a.begin()) {
+            list<Line>::iterator it1 = it2;
+            it1--;
+            if (it1->m == it2->m) {
+                if (it2->y <= it1->y) {
+                    list<Line>::iterator it_erase = it2;
+                    it2++;
+                    a.erase(it_erase);
+                    continue;
+                }
             }
-            while (0 < j) {
-                l.x = (l.y - a[j - 1].y) / (a[j - 1].m - l.m);
-//                cout << "    x = " << l.x << " j = " << j << " a[j-1].x = " << a[j-1].x << endl;
-                if (a[j - 1].x < l.x) break;
-                --j;
+            while (true) {
+                it2->x = (it2->y - it1->y) / (it1->m - it2->m);
+                if (it2->x > it1->x) break;
+
+                list<Line>::iterator it_erase = it1;
+                if (it1 == a.begin()) {
+                    it2->x = -numeric_limits<double>::infinity();
+                    a.erase(it_erase);
+                    break;
+                }
+                it1--;
+                a.erase(it_erase);
             }
-//            cout << "    j = " << j << endl;
-            if (0 == j) l.x = -numeric_limits<double>::infinity();
         }
-        a[j++] = l;
+        else it2->x = -numeric_limits<double>::infinity();
+        it2++;
     }
-//    cout << "  SweepLine: |a| = " << a.size() << " -> " << j << endl;
-//    for (size_t i = 0; i < j; i++) {
-//        Line &l = a[i];
-//        cout << "    line " << l.x << " " << l.hypothesis << endl;
-//    }
-    a.resize(j);
 }
 
-void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &a)
+void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &avec)
 {
-    map<Lattice::EdgeKey, vector<Line> > L;
+    map<Lattice::EdgeKey, list<Line> > L;
 
     vector<size_t> start;
     start.push_back(0);
 
     TopoIterator v_it(lattice, start);
+    list<Line> a;
+
     while (!v_it.isEnd()) {
         size_t vkey = v_it.get();
         Lattice::Vertex & v = lattice.getVertex(vkey);
@@ -99,14 +106,16 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
             for (size_t i=0; i<v.in.size();++i) {
                 Lattice::EdgeKey edgekey(v.in[i], vkey);
 
-                const vector<Line>& lines = L[edgekey];
-                a.insert(a.end(), lines.begin(), lines.end() );
+                map<Lattice::EdgeKey, list<Line> >::iterator it = L.find(edgekey);
+                if (it == L.end()) continue;
+
+                a.splice(a.end(), it->second );
+                L.erase(it);
             }
             sweepLine(a);
-            for (size_t i=0; i<v.in.size();++i) {
-                Lattice::EdgeKey edgekey(v.in[i], vkey);
-                L.erase(edgekey);
-            }
+//            for (size_t i=0; i<v.in.size();++i) {
+//                Lattice::EdgeKey edgekey(v.in[i], vkey);
+//            }
         }
 
         for (size_t i=0; i<v.out.size();++i) {
@@ -116,9 +125,9 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
             double dot_dir = dotProduct(edge.h, dir);
             double dot_lambda = dotProduct(edge.h, lambda);
 
-            vector<Line> &lines = L[edgekey];
-            lines = a;
-            for (vector<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
+            list<Line> &lines = (L[edgekey] = a);
+
+            for (list<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
                 lit->m += dot_dir;
                 lit->y += dot_lambda;
                 lit->path.push_back(edgekey);
@@ -127,6 +136,9 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
         }
         v_it.findNext();
     }
+
+    avec.insert(avec.end(), a.begin(), a.end());
+
 //    size_t K = a.size();
 //    for (size_t i = 0; i < K; i++) {
 //        Line &l = a[i];
