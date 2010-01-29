@@ -134,6 +134,7 @@ int main(int argc, char **argv)
         printParams(params);
         if (iteration>0 && (res.score - oldScore) < params.eps) {
             cout << "bleu improvement too small (" << res.score-oldScore << ")- i will quit. " << endl;
+            break;
         }
         oldScore = res.score;
     }
