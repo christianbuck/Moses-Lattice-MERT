@@ -1,9 +1,11 @@
 CXX = cc
 
-OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o
+OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o Parameters.o
 
 CXXFLAGS = -Wall -Wfatal-errors -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES
 LDFLAGS =  -lstdc++ -lboost_regex 
+
+GPROF2DOT = ./gprof2dot.py
 
 ifeq ($(DEBUG_OPTION),yes)
 CXXFLAGS += -g
@@ -42,10 +44,10 @@ debug: Makefile
 prof: Makefile
 	$(MAKE) $(MAKEFILE) PROFILE_OPTION=yes
 
-gmon.out: prof
-	time ./LatticeMERT > log.txt
+#gmon.out: prof
+#	time ./LatticeMERT > log.txt
 
-graph: gprof2dot.py gmon.out
-	gprof ./LatticeMERT | ./gprof2dot.py -s | dot -Tpdf -o callgraph.pdf
+graph: gmon.out
+	gprof ./LatticeMERT | $(GPROF2DOT) -s | dot -Tpdf -o callgraph.pdf
 
 again: clean LatticeMERT
