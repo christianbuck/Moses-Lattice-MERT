@@ -1,7 +1,11 @@
 # Main LatticeMERT : Main.cpp DagIterator.cpp SweepLine.cpp ;
-OPTIM = -O3 ;
-C++FLAGS = -Wfatal-errors ;
-LINKLIBS = -lstdc++ -lboost_regex ;
 
-Main LatticeMERT : Main.cpp Lattice.cpp MosesGraphReader.cpp BleuScorer.cpp ;
+PROFILE = ;
+OPTIM = -O3 ;
+
+C++FLAGS = -Wfatal-errors $(PROFILE) ;
+LINKLIBS = -lstdc++ -lboost_regex ;
+LINKFLAGS = $(PROFILE) ;
+
+Main LatticeMERT : Main.cpp Lattice.cpp MosesGraphReader.cpp BleuScorer.cpp Parameters.cpp ;
 

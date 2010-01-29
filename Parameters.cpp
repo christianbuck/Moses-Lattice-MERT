@@ -16,6 +16,7 @@ static struct argp_option options[] = {
 //    {"silent",   's', 0,      OPTION_ALIAS },
     {"reference", 'r', "file", 0, "Reference translation file" },
     {"lambda",   'l', "weights", 0, "Feature weights (lambda vector)" },
+    {"maxi",   'm', "iteration", 0, "maximum number of iterations" },
     { 0 }
 };
 
@@ -46,6 +47,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
          {
          case 'v':
            arguments->verbose = atoi(arg);
+           break;
+
+         case 'm':
+           arguments->maxIters = atoi(arg);
            break;
 
          case 'r':

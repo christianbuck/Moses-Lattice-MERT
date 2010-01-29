@@ -1,2 +1,9 @@
 *~
 *.o
+*.prof
+*.pdf
+*.dot
+*.out
+*.log
+*.osg
+*.ref

@@ -5,7 +5,7 @@ OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o Parameters.o
 CXXFLAGS = -Wall -Wfatal-errors -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES 
 LDFLAGS =  -lstdc++ -lboost_regex
 
-GPROF2DOT = ./gprof2dot.py
+GPROF2DOT = ./gprof2dot.py -n 5.0 -e 2.0
 
 ifeq ($(DEBUG_OPTION),yes)
 CXXFLAGS += -g
