@@ -22,41 +22,6 @@ typedef vector<double> FeatureVector;
 typedef map<Phrase,int> NgramCounts;
 typedef pair<double, vector<int> > boundary;
 
-struct Line
-{
-    double  x;
-    double  y;
-    double  m;
-    size_t  index;
-    Phrase hypothesis;
-
-    Line() : x(-numeric_limits<double>::infinity()), y(0), m(0) {}
-
-    static bool CompareBySlope(const Line &a, const Line &b)
-    {
-        return a.m < b.m;
-    }
-};
-
-struct Vertex;
-
-struct Edge
-{
-    vector<double> features;
-    Phrase phrase;
-    Vertex* end;
-    size_t idx;
-
-    Edge(Vertex* end) : end(end) {}
-};
-
-struct Vertex
-{
-    vector<Edge> in;
-    vector<Edge> out;
-    int nIncomingVisited;
-};
-
 const size_t bleuOrder = 4;
 struct BleuStats
 {
@@ -78,7 +43,7 @@ struct Interval
     double right;
 };
 
-ostream & operator << (ostream &os, const Phrase& p); 
+ostream & operator << (ostream &os, const Phrase& p);
 
 
 
