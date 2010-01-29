@@ -12,6 +12,7 @@
 #include "BleuScorer.h"
 #include "Lattice.h"
 #include "Types.h"
+#include "Parameters.h"
 
 using std::ifstream;
 using std::istream;
@@ -31,32 +32,31 @@ void readReference(istream &is_ref, Phrase &reference)
         assert( reference[i].length() > 0 );
 }
 
-void test1(void)
+void doMagic(const Parameters &params)
 {
-    vector<double> lambdas;
     vector<double> dir;
-    lambdas.push_back(-0.21);
-    lambdas.push_back(1.0);
-    lambdas.push_back(0.02);
-    lambdas.push_back(0.05);
-    lambdas.push_back(0.01);
-    lambdas.push_back(0.21);
-    lambdas.push_back(0.05);
-    lambdas.push_back(0.05);
-    lambdas.push_back(0.15);
-    lambdas.push_back(0.08);
-    lambdas.push_back(0.02);
-    lambdas.push_back(0.05);
-    lambdas.push_back(0.06);
-    lambdas.push_back(0.03);
-    lambdas.push_back(0.01);
+//    vector<double> lambdas;
+//    lambdas.push_back(-0.21);
+//    lambdas.push_back(1.0);
+//    lambdas.push_back(0.02);
+//    lambdas.push_back(0.05);
+//    lambdas.push_back(0.01);
+//    lambdas.push_back(0.21);
+//    lambdas.push_back(0.05);
+//    lambdas.push_back(0.05);
+//    lambdas.push_back(0.15);
+//    lambdas.push_back(0.08);
+//    lambdas.push_back(0.02);
+//    lambdas.push_back(0.05);
+//    lambdas.push_back(0.06);
+//    lambdas.push_back(0.03);
+//    lambdas.push_back(0.01);
     for (size_t i = 0; i < 15; i++) {
-        //lambdas.push_back(1.0);
         dir.push_back((i == 9) ? 1.0 : 0.0);
     }
 
-    ifstream is_ref("/home/karlos/Moses-Lattice-MERT/case2.ref");
-    ifstream is_osg("/home/karlos/Moses-Lattice-MERT/case2.osg");
+    ifstream is_ref(params.referencePath);
+    ifstream is_osg(params.inputPath);
     MosesGraphReader reader(is_osg);
 
     vector<boundary> cumulatedCounts;
@@ -70,7 +70,7 @@ void test1(void)
         cout << "Reference: [" << reference << "]" << endl;
 
         vector<Line> envelope;
-        latticeEnvelope(lattice, dir, lambdas, envelope);
+        latticeEnvelope(lattice, dir, params.lambdas, envelope);
 
         vector<BleuStats> stats;
         computeBleuStats(lattice, envelope, reference, stats);
@@ -81,8 +81,31 @@ void test1(void)
     optimizeBleu(cumulatedCounts, bestInterval);
 }
 
+void printParams(const Parameters &params)
+{
+    cout << "Parameters:" << endl;
+    cout << "  Input path: " << params.inputPath << endl;
+    cout << "  Reference path: " << params.referencePath << endl;
+    cout << "  Lambda: ";
+    for (size_t i = 0; i < params.lambdas.size(); i++)
+        cout << params.lambdas[i] << " ";
+    cout << endl;
+}
+
 int main(int argc, char **argv)
 {
+    Parameters params;
+
+    params.parse(argc, argv);
+
+    printParams(params);
+
+    doMagic(params);
+
+    return 0;
+}
+
+
     // Read options
 
     // Choose directions
@@ -98,9 +121,3 @@ int main(int argc, char **argv)
         // Maximimize BLEU over gamma and direction
 
     // Update lambdas
-
-    test1();
-
-    return 0;
-}
-
