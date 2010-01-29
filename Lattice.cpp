@@ -64,14 +64,14 @@ void sweepLine(vector<Line> &a)
         a[j++] = l;
     }
 //    cout << "  SweepLine: |a| = " << a.size() << " -> " << j << endl;
-    for (size_t i = 0; i < j; i++) {
-        Line &l = a[i];
+//    for (size_t i = 0; i < j; i++) {
+//        Line &l = a[i];
 //        cout << "    line " << l.x << " " << l.hypothesis << endl;
-    }
+//    }
     a.resize(j);
 }
 
-void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda, vector<Line> &a)
+void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &a)
 {
     map<Lattice::EdgeKey, vector<Line> > L;
 
@@ -115,20 +115,20 @@ void latticeEnvelope(Lattice &lattice, FeatureVector &dir, FeatureVector &lambda
 
             vector<Line> &lines = L[edgekey];
             lines = a;
-            for (size_t j = 0; j < a.size(); ++j) {
-                lines[j].m += dot_dir;
-                lines[j].y += dot_lambda;
+            for (vector<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
+                lit->m += dot_dir;
+                lit->y += dot_lambda;
+                lit->path.push_back(edgekey);
 //                cout << "    edge phrase " << edge.phrase << endl;
-                lines[j].path.push_back(edgekey);
             }
         }
         v_it.findNext();
     }
-    size_t K = a.size();
-    for (size_t i = 0; i < K; i++) {
-        Line &l = a[i];
+//    size_t K = a.size();
+//    for (size_t i = 0; i < K; i++) {
+//        Line &l = a[i];
 //        cout << "  line " << l.x << endl;
 //        cout << "  line " << l.x << " " << l.hypothesis << endl;
-    }
+//    }
 }
 
