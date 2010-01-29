@@ -34,32 +34,21 @@ void readReference(istream &is_ref, Phrase &reference)
 
 void doMagic(const Parameters &params)
 {
-    vector<double> dir;
-//    vector<double> lambdas;
-//    lambdas.push_back(-0.21);
-//    lambdas.push_back(1.0);
-//    lambdas.push_back(0.02);
-//    lambdas.push_back(0.05);
-//    lambdas.push_back(0.01);
-//    lambdas.push_back(0.21);
-//    lambdas.push_back(0.05);
-//    lambdas.push_back(0.05);
-//    lambdas.push_back(0.15);
-//    lambdas.push_back(0.08);
-//    lambdas.push_back(0.02);
-//    lambdas.push_back(0.05);
-//    lambdas.push_back(0.06);
-//    lambdas.push_back(0.03);
-//    lambdas.push_back(0.01);
-    for (size_t i = 0; i < 15; i++) {
-        dir.push_back((i == 9) ? 1.0 : 0.0);
+	size_t nDimensions = params.lambdas.size();
+	size_t nDirections = nDimensions; // might be higher of lower in case of random directions
+    vector< vector<double> > directions(nDirections);
+    for (size_t d=0;d<nDirections;d++) {
+        for (size_t i = 0; i < nDimensions; i++) {
+            directions[d].push_back((i == d) ? 1.0 : 0.0);
+        }
     }
 
     ifstream is_ref(params.referencePath);
     ifstream is_osg(params.inputPath);
     MosesGraphReader reader(is_osg);
 
-    vector<boundary> cumulatedCounts;
+    vector<vector<boundary> > differenceVectors(directions.size());
+//    vector<boundary> &cumulatedCounts;
 
     while (true) {
         Lattice lattice;
@@ -67,18 +56,42 @@ void doMagic(const Parameters &params)
 
         Phrase reference;
         readReference(is_ref, reference);
-        cout << "Reference: [" << reference << "]" << endl;
+        // cout << "Reference: [" << reference << "]" << endl;
 
-        vector<Line> envelope;
-        latticeEnvelope(lattice, dir, params.lambdas, envelope);
+		for (size_t d=0;d<nDirections;d++) {
+		    cout << d << " ";
+		    cout.flush();
+            vector<boundary> &cumulatedCounts = differenceVectors[d];
+			FeatureVector &dir = directions[d];
+		    vector<Line> envelope;
+		    latticeEnvelope(lattice, dir, params.lambdas, envelope);
 
-        vector<BleuStats> stats;
-        computeBleuStats(lattice, envelope, reference, stats);
-
-        accumulateBleu(stats, cumulatedCounts);
+		    vector<BleuStats> stats;
+		    computeBleuStats(lattice, envelope, reference, stats);
+		    accumulateBleu(stats, cumulatedCounts);
+		}
+	    cout << endl;
     }
     Interval bestInterval;
-    optimizeBleu(cumulatedCounts, bestInterval);
+    size_t bestDirection = 0;
+	for (size_t d=0;d<nDirections;d++) {
+        vector<boundary> &cumulatedCounts = differenceVectors[d];
+        Interval currInterval;
+        optimizeBleu(cumulatedCounts, currInterval);
+        if (d==0 || currInterval.score > bestInterval.score) {
+            bestInterval = currInterval;
+            bestDirection = d;
+        }
+    }
+
+    // Print great results
+    for (size_t i = 0; i < nDimensions; i++) {
+        if (i>0) {
+            cout << " ";
+        }
+        cout << directions[bestDirection][i];
+    }
+    cout << endl << "FINAL BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
 }
 
 void printParams(const Parameters &params)
