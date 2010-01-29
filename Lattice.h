@@ -33,6 +33,19 @@ public:
         edges.push_back(edge);
     }
 
+    void createSink() {
+        size_t skey = 9999999;
+
+        for (std::map<VertexKey, Vertex>::iterator it = vertices.begin(); it != vertices.end(); it++) {
+            if (it->second.out.size() == 0) {
+                Edge edge;
+                edge.from = it->first;
+                edge.to = skey;
+                addEdge(edge);
+            }
+        }
+    }
+
     Vertex & getVertex(VertexKey key) { return vertices[key]; }
     Edge & getEdge(EdgeKey key) { return edges[key]; }
     size_t getVertexCount() const { return vertices.size(); }
