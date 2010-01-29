@@ -108,26 +108,27 @@ void MosesGraphReader::getPhrase(string &suffix, Entry &e)
 
 bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 {
+    if (is.eof()) return false;
     while (!is.eof()) {
         string line;
         getline(is, line);
-        if (is.eof()) return false;
+        if (is.eof()) break;
 
         Entry e;
         parseLine(line, e);
 
-        if (e.hyp == 0) {
-            cout << "Sentence " << e.sentence << endl;
-            break;
-        }
+        if (e.hyp == 0) break;
 
         // add the edge to the lattice
 //        cout << "Edge " << backId << " - " << hypId << " phrase [" << phrase << "]" << endl;
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
 
-        Lattice::Edge &edge = lattice.addEdge(e.back, e.hyp);
+        Lattice::Edge edge;
         edge.h = e.features;
         edge.phrase = e.phrase;
+        edge.from = e.back;
+        edge.to = e.hyp;
+        lattice.addEdge(edge);
 
         for (size_t i = 0; i < edge.phrase.size(); i++)
             assert( edge.phrase[i].length() > 0 );
