@@ -15,4 +15,19 @@ private:
     std::istream &is;
 
     static boost::regex rx_line0, rx_line1, rx_line2, rx_line3, rx_line4, rx_line5;
+
+    struct Entry {
+        size_t sentence;
+        size_t hyp;
+        size_t back;
+        vector<double> features;
+        vector<string> phrase;
+    };
+
+    void parseLine(const string &line, Entry &e);
+    void getSentenceNumber(string &suffix, Entry &e);
+    void getHypothesis(string &suffix, Entry &e);
+    void getBackRef(string &suffix, Entry &e);
+    void getFeatures(string &suffix, Entry &e);
+    void getPhrase(string &suffix, Entry &e);
 };

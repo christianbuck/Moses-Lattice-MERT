@@ -12,8 +12,8 @@
 using namespace boost;
 using namespace std;
 
-// 0 hyp=0 stack=0 forward=1 fscore=-10.5248
-// 0 hyp=37 stack=1 back=0 score=-0.975545 transition=-0.975545 [ w: -2 u: 0 d: -4 0 0 -1.03429 0 0 0 lm: -10.9675 tm: -0.442792 -0.794259 -1.87952 -2.90528 0.999896 ] forward=194 fscore=-6.27491 covered=4-4 out=die inflation , pC=-0.244107, c=-0.932361
+// 0 hyp=0 stack=0
+// 0 hyp=37 stack=1 back=0 [ w: -2 u: 0 d: -4 0 0 -1.03429 0 0 0 lm: -10.9675 tm: -0.442792 -0.794259 -1.87952 -2.90528 0.999896 ] out=die inflation
 
 regex MosesGraphReader::rx_line0("^(\\d+) hyp=(\\d+) ");
 regex MosesGraphReader::rx_line1("^back=(\\d+) \\[ (.*) \\] out=(.*) $");
@@ -26,6 +26,86 @@ MosesGraphReader::MosesGraphReader(istream &is) : is(is)
     getline(is, line);
 }
 
+void MosesGraphReader::parseLine(const string &line, Entry &e)
+{
+    string suffix = line;
+
+    getSentenceNumber(suffix, e);
+    getHypothesis(suffix, e);
+    if (e.hyp == 0) return;
+    getBackRef(suffix, e);
+    getFeatures(suffix, e);
+    getPhrase(suffix, e);
+}
+
+void MosesGraphReader::getSentenceNumber(string &suffix, Entry &e)
+{
+    size_t pos = suffix.find_first_of(' ');
+    e.sentence = lexical_cast<size_t>(suffix.substr(0, pos));
+    suffix = suffix.substr(pos + 1);
+}
+
+void MosesGraphReader::getHypothesis(string &suffix, Entry &e)
+{
+    size_t pos1 = suffix.find_first_of('=');
+    size_t pos2 = suffix.find_first_of(' ');
+    pos1++;
+    e.hyp = lexical_cast<size_t>(suffix.substr(pos1, pos2 - pos1));
+    suffix = suffix.substr(pos2 + 1);
+}
+
+void MosesGraphReader::getBackRef(string &suffix, Entry &e)
+{
+    size_t pos1 = suffix.find_first_of('=');
+    size_t pos2 = suffix.find_first_of(' ');
+    pos1++;
+    e.back = lexical_cast<size_t>(suffix.substr(pos1, pos2 - pos1));
+    suffix = suffix.substr(pos2 + 1);
+}
+
+void MosesGraphReader::getFeatures(string &suffix, Entry &e)
+{
+    // suffix[0] == '['
+    size_t pos1 = 0;
+    while (pos1 < suffix.size()) {
+        size_t pos2 = suffix.find_first_of(' ', pos1);
+        if (pos2 == string::npos) break;
+
+        // get the token
+        const string &token = suffix.substr(pos1, pos2 - pos1);
+        pos1 = pos2 + 1;
+
+        // check for the brackets
+        if (token == "[") continue;
+        if (token == "]") break;
+
+        // check if it is not a descriptor
+        if (token[token.size() - 1] != ':') {
+            double feature = lexical_cast<double>(token);
+            e.features.push_back(feature);
+//            cout << "  [" << feature << "]" << endl;
+        }
+    }
+    suffix = suffix.substr(pos1);
+}
+
+void MosesGraphReader::getPhrase(string &suffix, Entry &e)
+{
+    size_t pos1 = suffix.find_first_of('=');
+    pos1++;
+    while (pos1 < suffix.size()) {
+        size_t pos2 = suffix.find_first_of(' ', pos1);
+
+        // get the token
+        const string &token = (pos2 != string::npos) ? suffix.substr(pos1, pos2 - pos1) : suffix.substr(pos1);
+        pos1 = pos2 + 1;
+
+//        cout << "  [" << token << "]" << endl;
+        e.phrase.push_back(token);
+    }
+    suffix = suffix.substr(pos1);
+}
+
 bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 {
     while (!is.eof()) {
@@ -33,68 +113,24 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
         getline(is, line);
         if (is.eof()) return false;
 
-        smatch m;
-        if (!regex_search(line, m, rx_line0, match_continuous)) {
-            cout << "Line not matching! [" << line << "]" << endl;
-            return false;
-        }
-        string hypIdStr = string(m[2].first, m[2].second);
-        size_t hypId = lexical_cast<size_t>(hypIdStr);
+        Entry e;
+        parseLine(line, e);
 
-        if (hypId == 0) {
-            string sentenceIdStr = string(m[1].first, m[1].second);
-            size_t sentenceId = lexical_cast<size_t>(sentenceIdStr);
-            cout << "Sentence " << sentenceId << endl;
+        if (e.hyp == 0) {
+            cout << "Sentence " << e.sentence << endl;
             break;
-        }
-
-        string suffix = m.suffix();
-        if (!regex_search(suffix, m, rx_line1, match_continuous)) {
-            cout << "Line not matching! [" << suffix << "]" << endl;
-            return false;
-        }
-        string backIdStr = string(m[1].first, m[1].second);
-        size_t backId = lexical_cast<size_t>(backIdStr);
-
-        string featureListStr = string(m[2].first, m[2].second);
-        string phrase = string(m[3].first, m[3].second);
-
-//      cout << "Parsing feature string [" << featureListStr << "]" << endl;
-        vector<double> featureList;
-        while (featureListStr.size() > 0) {
-            // really inefficient way to trim spaces from the start
-            while (featureListStr.size() > 0) {
-                if (featureListStr[0] != ' ') break;
-                featureListStr = featureListStr.substr(1);
-            }
-            if (featureListStr.size() == 0) break;
-            // try to match feature description
-            if (regex_search(featureListStr, m, rx_line2, match_continuous)) {
-                featureListStr = m.suffix();
-                continue;
-            }
-            // try to match feature value
-            if (regex_search(featureListStr, m, rx_line3, match_continuous)) {
-                string featureStr = string(m[0].first, m[0].second);
-//              cout << "Converting [" << featureStr << "]" << endl;
-                double feature = lexical_cast<double>(featureStr);
-                featureList.push_back(feature);
-                featureListStr = m.suffix();
-                continue;
-            }
-            cout << "feature string [" << featureListStr << "] not matching!" << endl;
-            return false;
         }
 
         // add the edge to the lattice
 //        cout << "Edge " << backId << " - " << hypId << " phrase [" << phrase << "]" << endl;
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
-        Lattice::Edge &edge = lattice.addEdge(backId, hypId);
-        edge.h = featureList;
-        split(edge.phrase, phrase, is_any_of(" "));
+
+        Lattice::Edge &edge = lattice.addEdge(e.back, e.hyp);
+        edge.h = e.features;
+        edge.phrase = e.phrase;
+
         for (size_t i = 0; i < edge.phrase.size(); i++)
             assert( edge.phrase[i].length() > 0 );
-        //edge.phrase = phrase;
     }
     cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
     return true;
