@@ -21,7 +21,7 @@ double dotProduct(const vector<F>& a,const vector<F>& b)
 {
     size_t d = a.size();
     assert(b.size() == d);
-    F p = 0.0;
+    F p = 0;
     for (size_t i=0;i<d;++i) {
         p += a[i]*b[i];
     }
@@ -45,35 +45,45 @@ void sweepLine(list<Line> &a)
 {
     a.sort(Line::CompareBySlope);
 
-    list<Line>::iterator it2 = a.begin();
-    while (it2 != a.end()) {
-        if (it2 != a.begin()) {
-            list<Line>::iterator it1 = it2;
-            it1--;
-            if (it1->m == it2->m) {
-                if (it2->y <= it1->y) {
-                    list<Line>::iterator it_erase = it2;
-                    it2++;
+    list<Line>::iterator it = a.begin();
+    while (it != a.end()) {
+        if (it != a.begin()) {
+            list<Line>::iterator it_prev = it;
+            it_prev--;
+            if (it_prev->m == it->m) {
+                if (it->y <= it_prev->y) {
+                    list<Line>::iterator it_erase = it;
+                    it++;
+                    a.erase(it_erase);
+                    continue;
+                }
+                else if (it_prev != a.begin()) {
+                    list<Line>::iterator it_erase = it_prev;
+                    it_prev--;
+                    a.erase(it_erase);
+                }
+                else {
+                    list<Line>::iterator it_erase = it_prev;
                     a.erase(it_erase);
                     continue;
                 }
             }
             while (true) {
-                it2->x = (it2->y - it1->y) / (it1->m - it2->m);
-                if (it2->x > it1->x) break;
+                it->x = (it->y - it_prev->y) / (it_prev->m - it->m);
+                if (it->x > it_prev->x) break;
 
-                list<Line>::iterator it_erase = it1;
-                if (it1 == a.begin()) {
-                    it2->x = -numeric_limits<double>::infinity();
+                list<Line>::iterator it_erase = it_prev;
+                if (it_prev == a.begin()) {
+                    it->x = -numeric_limits<double>::infinity();
                     a.erase(it_erase);
                     break;
                 }
-                it1--;
+                it_prev--;
                 a.erase(it_erase);
             }
         }
-        else it2->x = -numeric_limits<double>::infinity();
-        it2++;
+        else it->x = -numeric_limits<double>::infinity();
+        it++;
     }
 }
 
@@ -94,8 +104,7 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
 
 //        cout << "Visiting " << vkey
 //            << " In: " << v.in.size()
-//            << " Out: " << v.out.size()
-//            << " |L|=" << L.size() << endl;
+//            << " Out: " << v.out.size() << endl;
 
         a.clear();
         if (vkey == 0) {
@@ -120,28 +129,30 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
             Lattice::EdgeKey edgekey = v.out[i];
             Lattice::Edge &edge = lattice.getEdge(edgekey);
 
-            double dot_dir = dotProduct(edge.h, dir);
-            //double dot_dir = edge.h[dim];
-            double dot_lambda = dotProduct(edge.h, lambda);
+            L[edgekey] = a;
+            list<Line> &lines = L[edgekey];
 
-            list<Line> &lines = (L[edgekey] = a);
-
-            for (list<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
-                lit->m += dot_dir;
-                lit->y += dot_lambda;
-                lit->path.push_back(edgekey);
-//                cout << "    edge phrase " << edge.phrase << endl;
+            if (edge.h.size() > 0) {
+                double dot_dir = dotProduct(edge.h, dir);
+                double dot_lambda = dotProduct(edge.h, lambda);
+                for (list<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
+                    lit->m += dot_dir;
+                    lit->y += dot_lambda;
+                    lit->path.push_back(edgekey);
+    //                cout << "    edge phrase " << edge.phrase << endl;
+                }
             }
         }
         v_it.findNext();
     }
 
     avec.insert(avec.end(), a.begin(), a.end());
+
     delete[] L;
 
-//    size_t K = a.size();
+//    size_t K = avec.size();
 //    for (size_t i = 0; i < K; i++) {
-//        Line &l = a[i];
+//        Line &l = avec[i];
 //        cout << "  line " << l.x << endl;
 //        cout << "  line " << l.x << " " << l.hypothesis << endl;
 //    }
