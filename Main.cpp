@@ -36,12 +36,11 @@ Result doIteration(const Parameters &params)
 {
 	size_t nDimensions = params.lambdas.size();
 	size_t nDirections = nDimensions; // might be higher of lower in case of random directions
-//	nDirections = 1;
+//	nDirections = 13;
     vector< vector<double> > directions(nDirections);
     for (size_t d=0;d<nDirections;d++) {
         for (size_t i = 0; i < nDimensions; i++) {
             directions[d].push_back((i == d) ? 1.0 : 0.0);
-//            directions[d].push_back((i == 9) ? 1.0 : 0.0);
         }
     }
 
@@ -52,6 +51,7 @@ Result doIteration(const Parameters &params)
     vector<vector<boundary> > differenceVectors(directions.size());
 //    vector<boundary> &cumulatedCounts;
 
+    cout << endl;
     while (true) {
         Lattice lattice;
         if (!reader.GetNextLattice(lattice)) break;
@@ -59,10 +59,10 @@ Result doIteration(const Parameters &params)
         Phrase reference;
         readReference(is_ref, reference);
         // cout << "Reference: [" << reference << "]" << endl;
+	    cout << "#";
+	    cout.flush();
 
 		for (size_t d=0;d<nDirections;d++) {
-		    cout << d << " ";
-		    cout.flush();
             vector<boundary> &cumulatedCounts = differenceVectors[d];
 			FeatureVector &dir = directions[d];
 		    vector<Line> envelope;
@@ -72,8 +72,8 @@ Result doIteration(const Parameters &params)
 		    computeBleuStats(lattice, envelope, reference, stats);
 		    accumulateBleu(stats, cumulatedCounts);
 		}
-	    cout << endl;
     }
+    cout << endl;
     Interval bestInterval;
     size_t bestDirection = 0;
 	for (size_t d=0;d<nDirections;d++) {
@@ -124,7 +124,7 @@ void printParams(const Parameters &params)
     cout << endl;
 }
 
-void updateParameters(Parameters &params, FeatureVector &newLambdas) 
+void updateParameters(Parameters &params, FeatureVector &newLambdas)
 {
     for (size_t i=0; i<newLambdas.size();i++) {
         params.lambdas[i] = newLambdas[i];
