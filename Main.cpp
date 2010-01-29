@@ -73,7 +73,7 @@ void test1(void)
         latticeEnvelope(lattice, dir, lambdas, envelope);
 
         vector<BleuStats> stats;
-        computeBleuStats(envelope, reference, stats);
+        computeBleuStats(lattice, envelope, reference, stats);
 
         accumulateBleu(stats, cumulatedCounts);
     }
