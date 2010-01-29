@@ -13,28 +13,39 @@ OPTIMIZE_OPTION = yes
 endif
 
 ifeq ($(PROFILE_OPTION),yes)
-CXXFLAGS += -pg
-LDFLAGS += -pg
+CXXFLAGS += -pg -lc -g
+LDFLAGS += -pg -lc -g
+OPTIMIZE_OPTION = no
 endif
 
 ifeq ($(OPTIMIZE_OPTION),yes)
 CXXFLAGS += -O3
+else
+CXXFLAGS += -O0
 endif
 
 LatticeMERT: $(OBJS) Makefile
-	@$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT  
+	@echo "***>" LatticeMERT "<***"
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT  
 
 %.o : %.cpp
 	@echo "***" $< "***"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@  
+	$(CXX) $(CXXFLAGS) -c $< -o $@  
 
+.PHONY : clean prof debug again graph
 clean:
 	rm -f *.o *~ LatticeMERT
 
-debug: Makefile clean
+debug: Makefile
 	$(MAKE) $(MAKEFILE) DEBUG_OPTION=yes 
 
-prof: Makefile clean
+prof: Makefile
 	$(MAKE) $(MAKEFILE) PROFILE_OPTION=yes
+
+gmon.out: prof
+	time ./LatticeMERT > log.txt
+
+graph: gprof2dot.py gmon.out
+	gprof ./LatticeMERT | ./gprof2dot.py -s | dot -Tpdf -o callgraph.pdf
 
 again: clean LatticeMERT
