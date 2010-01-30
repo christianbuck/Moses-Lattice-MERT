@@ -37,7 +37,7 @@ public:
         size_t skey = 9999999;
 
         for (std::map<VertexKey, Vertex>::iterator it = vertices.begin(); it != vertices.end(); it++) {
-            if (it->second.out.size() == 0) {
+            if (it->second.out.size() == 0 && it->first != skey) {
                 Edge edge;
                 edge.from = it->first;
                 edge.to = skey;

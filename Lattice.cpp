@@ -120,6 +120,11 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
                 //a.splice(a.end(), it->second );
                 //L.erase(it);
 
+                if (L[edgekey].size() == 0) {
+                    Lattice::Edge & edge = lattice.getEdge(edgekey);
+                    cout << "WARNING: In edge from " << edge.from << " contains zero lines!" << endl;
+                }
+
                 a.splice(a.end(), L[edgekey]);
             }
             sweepLine(a);
