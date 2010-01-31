@@ -1,0 +1,20 @@
+Few things to do:
+
+    - Implement MERT script that works with Moses
+    - Test LatticeMERT and compare with CMERT
+
+    - Comment code
+    - Refactor ugly code (move code to nice classes)
+    - Proper debug output according to verbosity level (could be compile-time only)
+    - README file with description and typical usage
+
+    - Implement more metrics (WER, TER etc)
+
+    - More diverse settings
+        - Optimization strategy
+
+    - Profile and optimize the performance
+
+    - ?
+    - Profit!
+
