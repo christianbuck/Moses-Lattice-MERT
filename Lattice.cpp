@@ -43,15 +43,15 @@ ostream & operator << (ostream &os, const Phrase& p) {
 
 void sweepLine(list<Line> &a)
 {
-    a.sort(Line::CompareBySlope);
+//    a.sort(Line::CompareBySlope);
 
     list<Line>::iterator it = a.begin();
     while (it != a.end()) {
         if (it != a.begin()) {
             list<Line>::iterator it_prev = it;
             it_prev--;
-            if (it_prev->m == it->m) {
-                if (it->y <= it_prev->y) {
+            if (it_prev->slope == it->slope) {
+                if (it->offset <= it_prev->offset) {
                     list<Line>::iterator it_erase = it;
                     it++;
                     a.erase(it_erase);
@@ -69,12 +69,12 @@ void sweepLine(list<Line> &a)
                 }
             }
             while (true) {
-                it->x = (it->y - it_prev->y) / (it_prev->m - it->m);
-                if (it->x > it_prev->x) break;
+                it->leftBound = (it->offset - it_prev->offset) / (it_prev->slope - it->slope);
+                if (it->leftBound > it_prev->leftBound) break;
 
                 list<Line>::iterator it_erase = it_prev;
                 if (it_prev == a.begin()) {
-                    it->x = -numeric_limits<double>::infinity();
+                    it->leftBound = -numeric_limits<double>::infinity();
                     a.erase(it_erase);
                     break;
                 }
@@ -82,22 +82,29 @@ void sweepLine(list<Line> &a)
                 a.erase(it_erase);
             }
         }
-        else it->x = -numeric_limits<double>::infinity();
+        else it->leftBound = -numeric_limits<double>::infinity();
         it++;
     }
 }
 
+// Implementation of Algorithm 2 from the paper
+// The function computes upper envelope for the best translations in the lattice
+// Given feature weights lambda and direction vector dir,
+// it finds the boundary points along the line described by dir.
+// Each boundary point is described by a Line structure.
+
 void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVector &lambda, vector<Line> &avec)
 {
+    // temporary object for storing hull lines that are associated with edges
     list<Line> *L = new list<Line>[lattice.getEdgeCount()];
-//    map<Lattice::EdgeKey, list<Line> > L;
+    list<Line> a;       // hull for the current vertex
 
     vector<size_t> start;
-    start.push_back(0);
+    start.push_back(0);     // 0 is the source node key in lattice
 
     TopoIterator v_it(lattice, start);
-    list<Line> a;
 
+    // traverse the lattice in topological order
     while (!v_it.isEnd()) {
         size_t vkey = v_it.get();
         Lattice::Vertex & v = lattice.getVertex(vkey);
@@ -107,50 +114,48 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir, const FeatureVe
 //            << " Out: " << v.out.size() << endl;
 
         a.clear();
-        if (vkey == 0) {
+        // special case for source node: insert horizontal line
+        if (vkey == 0)
             a.push_back(Line());
-        }
-        else {
-            for (size_t i=0; i<v.in.size();++i) {
-                Lattice::EdgeKey edgekey = v.in[i];
 
-                //map<Lattice::EdgeKey, list<Line> >::iterator it = L.find(edgekey);
-                //if (it == L.end()) continue;
+        // merge hulls associated with incoming edges into single sorted list of lines
+        for (size_t i=0; i<v.in.size();++i) {
+            Lattice::EdgeKey edgekey = v.in[i];
 
-                //a.splice(a.end(), it->second );
-                //L.erase(it);
-
-                if (L[edgekey].size() == 0) {
-                    Lattice::Edge & edge = lattice.getEdge(edgekey);
-                    cout << "WARNING: In edge from " << edge.from << " contains zero lines!" << endl;
-                }
-
-                a.splice(a.end(), L[edgekey]);
+            if (L[edgekey].size() == 0) {
+                Lattice::Edge & edge = lattice.getEdge(edgekey);
+                cout << "WARNING: In edge from " << edge.from << " contains zero lines!" << endl;
             }
-            sweepLine(a);
+            // this also empties L[edgekey], which is not needed anymore
+            a.merge(L[edgekey], Line::CompareBySlope);
         }
 
+        // compute the upper envelope by removing unneccesary lines from a and updating leftBounds
+        sweepLine(a);
+
+        // update hulls associated with outgoing edges
         for (size_t i=0; i<v.out.size();++i) {
             Lattice::EdgeKey edgekey = v.out[i];
             Lattice::Edge &edge = lattice.getEdge(edgekey);
 
             L[edgekey] = a;
-            list<Line> &lines = L[edgekey];
-
-            if (edge.h.size() > 0) {
-                double dot_dir = dotProduct(edge.h, dir);
-                double dot_lambda = dotProduct(edge.h, lambda);
+            // update unless the edge leads to the sink node and has no feature score vector
+            if (edge.scores.size() > 0) {
+                list<Line> &lines = L[edgekey];
+                double dot_dir = dotProduct(edge.scores, dir);
+                double dot_lambda = dotProduct(edge.scores, lambda);
                 for (list<Line>::iterator lit = lines.begin(); lit != lines.end(); ++lit) {
-                    lit->m += dot_dir;
-                    lit->y += dot_lambda;
+                    lit->slope += dot_dir;
+                    lit->offset += dot_lambda;
                     lit->path.push_back(edgekey);
-    //                cout << "    edge phrase " << edge.phrase << endl;
+//                cout << "    edge phrase " << edge.phrase << endl;
                 }
             }
         }
         v_it.findNext();
     }
 
+    // return result
     avec.insert(avec.end(), a.begin(), a.end());
 
     delete[] L;

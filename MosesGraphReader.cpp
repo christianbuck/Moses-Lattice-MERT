@@ -125,7 +125,7 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
 
         Lattice::Edge edge;
-        edge.h = e.features;
+        edge.scores = e.features;
         edge.phrase = e.phrase;
         edge.from = e.back;
         edge.to = e.hyp;

@@ -38,7 +38,7 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
     for (size_t i = 0; i < K; i++) {
         Phrase hyp;
         a[i].getHypothesis(lattice, hyp);
-        BleuStats lineStats(hyp.size(), a[i].x);
+        BleuStats lineStats(hyp.size(), a[i].leftBound);
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
         for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {

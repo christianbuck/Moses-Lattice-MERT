@@ -20,7 +20,7 @@ public:
     };
 
     struct Edge {
-        FeatureVector h;
+        FeatureVector scores;
         Phrase phrase;
         VertexKey from;
         VertexKey to;
@@ -101,14 +101,15 @@ while S is non-empty do
             insert m into S
 */
 
+// describes a Line segment (m * x + b) in a hull
 struct Line
 {
-    double  x;      // left boundary
-    double  y;      // line offset
-    double  m;      // line slope
+    double  slope;      // line slope (m)
+    double  offset;     // line offset (b)
+    double  leftBound;  // left boundary
     vector<Lattice::EdgeKey> path; // path through the graph
 
-    Line() : x(-numeric_limits<double>::infinity()), y(0), m(0) {}
+    Line() : slope(0), offset(0), leftBound(-numeric_limits<double>::infinity()) {}
 
     void getHypothesis(Lattice &lattice, Phrase &hypothesis) const {
         for (size_t i = 0; i < path.size(); i++) {
@@ -119,7 +120,7 @@ struct Line
 
     static bool CompareBySlope(const Line &a, const Line &b)
     {
-        return a.m < b.m;
+        return a.slope < b.slope;
     }
 };
 
