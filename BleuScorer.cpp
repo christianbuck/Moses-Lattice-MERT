@@ -41,6 +41,22 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
         BleuStats lineStats(hyp.size(), a[i].leftBound);
         NgramCounts hypCounts;
         countNGrams(hyp, hypCounts);
+        NgramCounts::const_iterator rit = referenceCounts.begin();
+        NgramCounts::const_iterator hit = hypCounts.begin();
+        while (rit != referenceCounts.end() && hit != hypCounts.end()) {
+            // int cmp = (hit->first).compare(rit->first);
+            // bool cmp = hit->first > rit->first;
+            if (hit->first == rit->first) {
+                lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second);
+                ++hit;
+                ++rit;
+            } else if (hit->first < rit->first) {
+                ++hit;
+            } else  {
+                ++rit;
+            }
+        }
+/*        
         for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {
             NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
             if (rit != referenceCounts.end()) {
@@ -48,7 +64,7 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
                 lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second); // clipped counts
             }
         }
-        // lineStats.length = hyp.size();
+*/        // lineStats.length = hyp.size();
         // lineStats.leftBoundary = a[i].x;
         // cout << "lstats: l:" << lineStats.length << " lbound: " << lineStats.leftBoundary;
         // cout << " c1 " << lineStats.counts[0] << " c2 " << lineStats.counts[1] << " c3 " << lineStats.counts[2] << " c4 " << lineStats.counts[3] << endl;

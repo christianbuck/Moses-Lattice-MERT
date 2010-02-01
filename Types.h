@@ -3,11 +3,11 @@
 #include <limits>
 #include <vector>
 #include <string>
-#include <map>
+//#include <map>
 #include <iostream>
 // #include "BleuScorer.h"
 
-using std::map;
+//using std::map;
 using std::pair;
 using std::vector;
 using std::string;
@@ -20,22 +20,9 @@ typedef vector<string> Phrase;
 typedef double FeatureValue; 
 typedef vector<FeatureValue> FeatureVector;
 
-typedef map<Phrase,int> NgramCounts;
 typedef pair<double, vector<int> > boundary;
 
 const size_t bleuOrder = 4;
-struct BleuStats
-{
-    double leftBoundary;
-    size_t counts[bleuOrder*2];
-    size_t length;
-
-    BleuStats(const size_t length, const double leftBoundary) {
-        this->leftBoundary = leftBoundary;
-        this->length = length;
-        for (size_t n = 0; n < bleuOrder; ++n) { counts[n]=0; }
-    }
-};
 
 struct Interval
 {
