@@ -3,11 +3,8 @@
 #include <limits>
 #include <vector>
 #include <string>
-//#include <map>
 #include <iostream>
-// #include "BleuScorer.h"
 
-//using std::map;
 using std::pair;
 using std::vector;
 using std::string;
@@ -16,7 +13,8 @@ using std::numeric_limits;
 using std::ostream;
 
 typedef wstring String;
-typedef vector<string> Phrase;
+typedef string Word;
+typedef vector<Word> Phrase;
 typedef double FeatureValue; 
 typedef vector<FeatureValue> FeatureVector;
 
