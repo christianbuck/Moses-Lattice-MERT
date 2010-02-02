@@ -13,6 +13,56 @@ using std::numeric_limits;
 using std::cout;
 using std::endl;
 
+void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t len, size_t depth) 
+{
+    assert (pos<len);
+    assert (depth<bleuOrder);
+    Word w = ref[pos];
+    if (tree.branches.find(w) == tree.branches.end()) {
+        tree.branches[w] = NGramTree(1);
+//        cout << "adding element for w " << w << " at depth " << depth << endl;
+    } else {
+        tree.branches[w].count++;
+    }
+    if (++depth < bleuOrder && ++pos < len) {
+        buildNGramTree(ref, tree.branches[w], pos, len, depth);
+    }
+}
+
+void resetNGramTree(NGramTree& tree, size_t depth) 
+{
+    tree.used = 0;
+    if (depth==bleuOrder) {
+        return;
+    }
+    for(map<Word, NGramTree>::iterator it = tree.branches.begin(); it != tree.branches.end(); it++) {
+        resetNGramTree(it->second, depth+1);
+    }
+}
+
+
+
+void countNGrams(const Phrase& cand, NGramTree& refTree, const size_t pos, const size_t len, const size_t depth, vector<size_t> &counts) 
+{
+    assert (pos<len);
+    assert (depth<bleuOrder);
+    const Word &w = cand[pos];
+    map<Word, NGramTree>::iterator it = refTree.branches.find(w);
+    if (it == refTree.branches.end()) {
+        return;
+    }
+    NGramTree& branch = it->second;
+    if (branch.count > branch.used) {
+        counts[depth]++;
+        branch.used++;
+    }
+    if (depth+1 < bleuOrder && pos+1 < len) {
+        countNGrams(cand, branch, pos+1, len, depth+1, counts);
+    }
+}
+
+
+
 void countNGrams(const Phrase& reference, NgramCounts& counts)
 {
     size_t referenceSize = reference.size();
@@ -30,44 +80,20 @@ void countNGrams(const Phrase& reference, NgramCounts& counts)
 
 void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
 {
-//    cout << "ref: " << reference << endl;
+    NGramTree refTree;
+    for (size_t pos=0; pos<reference.size(); ++pos) {
+        buildNGramTree(reference, refTree, pos, reference.size(),0);
+    }
     size_t K = a.size();
-    NgramCounts referenceCounts;
-    countNGrams(reference,referenceCounts);
-
     for (size_t i = 0; i < K; i++) {
+        if (i>0) resetNGramTree(refTree,0);
         Phrase hyp;
         a[i].getHypothesis(lattice, hyp);
-        BleuStats lineStats(hyp.size(), a[i].leftBound);
-        NgramCounts hypCounts;
-        countNGrams(hyp, hypCounts);
-        NgramCounts::const_iterator rit = referenceCounts.begin();
-        NgramCounts::const_iterator hit = hypCounts.begin();
-        while (rit != referenceCounts.end() && hit != hypCounts.end()) {
-            // int cmp = (hit->first).compare(rit->first);
-            // bool cmp = hit->first > rit->first;
-            if (hit->first == rit->first) {
-                lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second);
-                ++hit;
-                ++rit;
-            } else if (hit->first < rit->first) {
-                ++hit;
-            } else  {
-                ++rit;
-            }
+        const size_t hypSize = hyp.size();
+        BleuStats lineStats(hypSize, a[i].leftBound);
+        for (size_t pos=0; pos<hypSize; ++pos) {
+            countNGrams(hyp, refTree, pos, hypSize, 0, lineStats.counts);
         }
-/*        
-        for (NgramCounts::const_iterator hit = hypCounts.begin(); hit != hypCounts.end(); hit++) {
-            NgramCounts::const_iterator rit = referenceCounts.find(hit->first);
-            if (rit != referenceCounts.end()) {
-                // size_t c = rit->second < hit->second] ? rit->second : hit->second;
-                lineStats.counts[hit->first.size()-1] += std::min(rit->second, hit->second); // clipped counts
-            }
-        }
-*/        // lineStats.length = hyp.size();
-        // lineStats.leftBoundary = a[i].x;
-        // cout << "lstats: l:" << lineStats.length << " lbound: " << lineStats.leftBoundary;
-        // cout << " c1 " << lineStats.counts[0] << " c2 " << lineStats.counts[1] << " c3 " << lineStats.counts[2] << " c4 " << lineStats.counts[3] << endl;
         stats.push_back(lineStats);
     }
 }
@@ -146,29 +172,4 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
     cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
 
 }
-
-
-/* probably not valid anymore ... */
-/*
-void pruneCounts(vector< vector<boundary> >& cumulatedCounts)
-{
-    vector<boundary>& counts = cumulatedCounts[i];
-    std::sort(counts.start(),counts.end());
-    double oldBoundary = 0;
-    for (vector<boundary>::iterator i=counts.begin();i<counts.end();i++) {
-        if (i==counts.begin()) {
-            oldBoundary = (*i)->first;
-            continue;
-        }
-        double currBoundary = (*i)->first;
-        if (currBoundary==oldBoundary) {
-            (*i)->second += (*i)->second;
-            counts.erase(i)
-            i--;
-        }
-    }
-}
-
-*/
-
 

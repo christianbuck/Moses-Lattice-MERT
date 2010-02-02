@@ -13,13 +13,30 @@ typedef map<Phrase,int> NgramCounts;
 struct BleuStats
 {
     double leftBoundary;
-    size_t counts[bleuOrder*2];
+    vector<size_t> counts;
     size_t length;
 
     BleuStats(const size_t length, const double leftBoundary) {
         this->leftBoundary = leftBoundary;
         this->length = length;
-        for (size_t n = 0; n < bleuOrder; ++n) { counts[n]=0; }
+        this->counts.resize(bleuOrder);
+        // for (size_t n = 0; n < bleuOrder*2; ++n) { counts[n]=0; }
+    }
+};
+
+struct NGramTree;
+struct NGramTree
+{
+    size_t count;
+    size_t used;
+    map<Word, NGramTree> branches;
+    NGramTree() {
+        count = 0;
+        used = 0;
+    }
+    NGramTree(const size_t count) {
+        this->count = count;
+        this->used = 0;
     }
 };
 
