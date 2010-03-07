@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string>
 #include <list>
+#include <cmath>
 
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -113,7 +114,7 @@ Result doIteration(const Parameters &params)
     for (size_t i=0;i<nDimensions;i++) {
         double newValue = params.lambdas[i] + directions[bestDirection][i] * bestVal;
         bestLambdas[i] = newValue;
-        norm1 += abs(newValue);
+        norm1 += fabs(newValue);
     }
     if (norm1 < 1E-6) norm1 = 1E-6;
     for (size_t i = 0; i < nDimensions; i++) {
