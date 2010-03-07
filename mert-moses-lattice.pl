@@ -448,9 +448,9 @@ if ($continue) {
     for (my $prevstep=$firststep; $prevstep<=$step;$prevstep++){
       print STDERR "Checking whether data of step $prevstep are available\n";
     }
-    if (! -e "run$step.$weights_out_file"){
-      die "Can't start from step $step, because run$step.$weights_out_file was not found!";
-    }
+#    if (! -e "run$step.$weights_out_file"){
+#      die "Can't start from step $step, because run$step.$weights_out_file was not found!";
+#    }
     if (! -e "run$step.$mert_logfile"){
       die "Can't start from step $step, because run$step.$mert_logfile was not found!";
     }
@@ -592,7 +592,7 @@ while(1) {
   my $lambdas = join(" ", @CURR);
 
   # run mert
-  $cmd = "$mert_mert_cmd -l \"$lambdas\" -m 10";
+  $cmd = "$mert_mert_cmd -l \"$lambdas\" -m 5";
 #  if ($___PREDICTABLE_SEEDS) {
 #      my $seed = $run * 1000;
 #      $cmd = $cmd." -r $seed";
@@ -612,14 +612,14 @@ while(1) {
 
 
   safesystem("$cmd > $mert_logfile") or die "Failed to run mert";
-  die "Optimization failed, file $weights_out_file does not exist or is empty"
-    if ! -s $weights_out_file;
+#  die "Optimization failed, file $weights_out_file does not exist or is empty"
+#    if ! -s $weights_out_file;
 
 
  # backup copies
   safesystem ("\\cp -f $mert_logfile run$run.$mert_logfile") or die;
   safesystem ("touch $mert_logfile run$run.$mert_logfile") or die;
-  safesystem ("\\cp -f $weights_out_file run$run.$weights_out_file") or die; # this one is needed for restarts, too
+#  safesystem ("\\cp -f $weights_out_file run$run.$weights_out_file") or die; # this one is needed for restarts, too
   safesystem ("\\cp -f $names_file run$run.$names_file") or die; # this one is needed for restarts, too
 
   print "run $run end at ".`date`;
