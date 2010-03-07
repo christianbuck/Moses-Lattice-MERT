@@ -36,7 +36,7 @@ Result doIteration(const Parameters &params)
 {
 	size_t nDimensions = params.lambdas.size();
 	size_t nDirections = nDimensions; // might be higher of lower in case of random directions
-//	nDirections = 13;
+//	nDirections = 15;
     vector< vector<double> > directions(nDirections);
     for (size_t d=0;d<nDirections;d++) {
         for (size_t i = 0; i < nDimensions; i++) {
@@ -108,7 +108,10 @@ Result doIteration(const Parameters &params)
         }
     }
     for (size_t i=0;i<nDimensions;i++) {
-        result.lambdas.push_back(params.lambdas[i] + directions[bestDirection][i] * bestVal);
+        double newValue = params.lambdas[i] + directions[bestDirection][i] * bestVal;
+        if (newValue < -1.0) newValue = -1.0;
+        else if (newValue > 1.0) newValue = 1.0;
+        result.lambdas.push_back(newValue);
     }
     return result;
 }
@@ -141,20 +144,26 @@ int main(int argc, char **argv)
 
     double oldScore=0.0;
     for (size_t iteration=0; iteration<params.maxIters; iteration++) {
+        cout << "Doing iteration " << (iteration + 1) << endl;
         Result res = doIteration(params);
         updateParameters(params, res.lambdas);
-        printParams(params);
+
+        cout << "Current point: ";
+        for (size_t i = 0; i < params.lambdas.size(); i++)
+            cout << params.lambdas[i] << " ";
+        cout << " => " res.score << endl;
+
         if (iteration>0 && (res.score - oldScore) < params.eps) {
-            cout << "bleu improvement too small (" << res.score-oldScore << ")- i will quit. " << endl;
+            cout << "Improvement too small (" << res.score-oldScore << ")- I will quit. " << endl;
             break;
         }
         oldScore = res.score;
     }
 
-    cout << "NEW LAMBDAS: ";
+    cout << "Best point: ";
     for (size_t i = 0; i < params.lambdas.size(); i++)
         cout << params.lambdas[i] << " ";
-    cout << endl;
+    cout << " => " << oldScore << endl;
 
     return 0;
 }
