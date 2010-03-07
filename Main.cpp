@@ -53,12 +53,14 @@ Result doIteration(const Parameters &params)
 //    vector<boundary> &cumulatedCounts;
 
     cout << endl;
+    size_t refLength = 0;
     while (true) {
         Lattice lattice;
         if (!reader.GetNextLattice(lattice)) break;
 
         Phrase reference;
         readReference(is_ref, reference);
+        refLength += reference.size();
         // cout << "Reference: [" << reference << "]" << endl;
 	    cout << "#";
 	    cout.flush();
@@ -80,7 +82,7 @@ Result doIteration(const Parameters &params)
 	for (size_t d=0;d<nDirections;d++) {
         vector<boundary> &cumulatedCounts = differenceVectors[d];
         Interval currInterval;
-        optimizeBleu(cumulatedCounts, currInterval);
+        optimizeBleu(cumulatedCounts, currInterval, refLength);
         if (d==0 || currInterval.score > bestInterval.score) {
             bestInterval = currInterval;
             bestDirection = d;

@@ -13,7 +13,7 @@ using std::numeric_limits;
 using std::cout;
 using std::endl;
 
-void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t len, size_t depth) 
+void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t len, size_t depth)
 {
     assert (pos<len);
     assert (depth<bleuOrder);
@@ -29,7 +29,7 @@ void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t
     }
 }
 
-void resetNGramTree(NGramTree& tree, size_t depth) 
+void resetNGramTree(NGramTree& tree, size_t depth)
 {
     tree.used = 0;
     if (depth==bleuOrder) {
@@ -42,7 +42,7 @@ void resetNGramTree(NGramTree& tree, size_t depth)
 
 
 
-void countNGrams(const Phrase& cand, NGramTree& refTree, const size_t pos, const size_t len, const size_t depth, vector<size_t> &counts) 
+void countNGrams(const Phrase& cand, NGramTree& refTree, const size_t pos, const size_t len, const size_t depth, vector<size_t> &counts)
 {
     assert (pos<len);
     assert (depth<bleuOrder);
@@ -103,8 +103,9 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
 /* takes BleuStats data for a single sentences and appends difference vectors to cumulatedCounts */
     size_t nStats = stats.size();
     int oldCount[bleuOrder*2] = {0};
+    int oldLength = 0;
     for (size_t i=0;i<nStats;++i) {
-        vector<int> diffs(bleuOrder*2);
+        vector<int> diffs((bleuOrder + 1)*2);
         int length = stats[i].length;
         for (size_t n =0; n<bleuOrder;n++) {
             int curr = stats[i].counts[n];
@@ -114,12 +115,14 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
             diffs[n+bleuOrder] = possibleNGrams - oldCount[n+bleuOrder];
             oldCount[n+bleuOrder] = possibleNGrams;
         }
+        diffs[bleuOrder] = length - oldLength;
+        oldLength = length;
         cumulatedCounts.push_back( boundary(stats[i].leftBoundary,diffs) );
     }
 }
 
 
-double Bleu(int p[])
+double Bleu(int p[], size_t refLength)
 {
     double score = 0.0;
     for (size_t n=0; n<bleuOrder; n++) {
@@ -129,10 +132,16 @@ double Bleu(int p[])
         // score += log((double)p[n] / (double)p[n+bleuOrder]);
         score += log((double)p[n]) - log((double)p[n+bleuOrder]);
     }
-    return exp(score/bleuOrder);
+    score = score / bleuOrder;
+    if (p[bleuOrder] < (int)refLength) {
+        // apply brevity penalty
+        score += 1 - (double)refLength / p[bleuOrder];
+//        cout << "Applying BP (refLength=" << refLength << ", hypLength=" << p[bleuOrder] << ")" << endl;
+    }
+    return exp(score);
 }
 
-void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
+void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval, size_t refLength)
 {
     std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
     int p[bleuOrder*2] = {0};
@@ -146,7 +155,7 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
         double newBoundary = cumulatedCounts[i].first;
         if (oldBoundary != newBoundary) {
             // check if we shall update bestInterval
-            double bleuScore = Bleu(p);  // if this is better than the old one, that last interval was good
+            double bleuScore = Bleu(p, refLength);  // if this is better than the old one, that last interval was good
             // cout << "Interval [" << oldBoundary << " - " << newBoundary << "] score: " << bleuScore;
             // cout << "c: " << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << " | " << p[4] << " " << p[5] << " " << p[6] << " " << p[7] << endl;
             if (bleuScore > bestInterval.score) {
@@ -161,7 +170,7 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval)
             p[n] += currCounts[n];
         }
     }
-    double bleuScore = Bleu(p);
+    double bleuScore = Bleu(p, refLength);
     if (bleuScore > bestInterval.score) {
         // This means either the last element was the best one or we only have parallel lines
         bestInterval.left = oldBoundary;
