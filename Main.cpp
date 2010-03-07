@@ -107,12 +107,19 @@ Result doIteration(const Parameters &params)
             bestVal = (bestInterval.right+bestInterval.left)/2;
         }
     }
+    // normalize lambdas
+    double norm1 = 0;
+    FeatureVector bestLambdas(nDimensions);
     for (size_t i=0;i<nDimensions;i++) {
         double newValue = params.lambdas[i] + directions[bestDirection][i] * bestVal;
-        if (newValue < -1.0) newValue = -1.0;
-        else if (newValue > 1.0) newValue = 1.0;
-        result.lambdas.push_back(newValue);
+        bestLambdas[i] = newValue;
+        norm1 += abs(newValue);
     }
+    if (norm1 < 1E-6) norm1 = 1E-6;
+    for (size_t i = 0; i < nDimensions; i++) {
+        bestLambdas[i] /= norm1;
+    }
+    result.lambdas = bestLambdas;
     return result;
 }
 
