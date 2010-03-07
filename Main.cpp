@@ -151,7 +151,7 @@ int main(int argc, char **argv)
         cout << "Current point: ";
         for (size_t i = 0; i < params.lambdas.size(); i++)
             cout << params.lambdas[i] << " ";
-        cout << " => " res.score << endl;
+        cout << " => " << res.score << endl;
 
         if (iteration>0 && (res.score - oldScore) < params.eps) {
             cout << "Improvement too small (" << res.score-oldScore << ")- I will quit. " << endl;
