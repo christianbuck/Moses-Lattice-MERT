@@ -535,7 +535,7 @@ while(1) {
         #@order_of_lambdas = get_order_of_scores_from_nbestlist("gunzip -dc run*.sg.gz | head -2 |");
         @order_of_lambdas = get_order_of_scores_from_nbestlist("cat last.sg | head -2 |");
       }
-      #$skip_decoder = 0;
+      $skip_decoder = 0;
       #$need_to_normalize = 0;
       $nbest_file = "last.sg";
   }
