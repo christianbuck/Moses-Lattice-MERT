@@ -13,6 +13,7 @@ using std::numeric_limits;
 using std::cout;
 using std::endl;
 
+// recursively builds a partial suffix tree down to depth of bleuOrder
 void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t len, size_t depth)
 {
     assert (pos<len);
@@ -29,6 +30,7 @@ void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos, const size_t
     }
 }
 
+// not used any more
 void resetNGramTree(NGramTree& tree, size_t depth)
 {
     tree.used = 0;
@@ -41,7 +43,7 @@ void resetNGramTree(NGramTree& tree, size_t depth)
 }
 
 
-
+// old implementation - not quite correct
 void countNGrams(const Phrase& cand, NGramTree& refTree, const size_t pos, const size_t len, const size_t depth, vector<size_t> &counts)
 {
     assert (pos<len);
@@ -61,29 +63,40 @@ void countNGrams(const Phrase& cand, NGramTree& refTree, const size_t pos, const
     }
 }
 
-
-
-void countNGrams(const Phrase& reference, NgramCounts& counts)
+// accumulates the correct BLEU n-gram counts for given hypothesis and reference
+void countNGrams(NGramTree &hypTree, NGramTree& refTree, const size_t depth, vector<size_t> &counts)
 {
-    size_t referenceSize = reference.size();
-    size_t maxN = std::min(referenceSize, bleuOrder);
-    for (size_t n=1; n<=maxN;n++) {
-        for (size_t offset=0; offset+n<referenceSize+1;offset++) {
-            Phrase ngram;
-            for (size_t pos=offset; pos<offset+n;pos++) {
-                ngram.push_back(reference[pos]);
-            }
-            counts[ngram]++;
+    assert (depth<bleuOrder);
+    // iterate over hypothesis n-grams
+    map<Word, NGramTree>::iterator it;
+    for (it = hypTree.branches.begin(); it != hypTree.branches.end(); it++) {
+        const Word &w = it->first;
+        NGramTree& hypBranch = it->second;
+
+        // find coinciding n-grams in reference tree
+        map<Word, NGramTree>::iterator it2 = refTree.branches.find(w);
+        if (it2 == refTree.branches.end()) continue;
+
+        NGramTree& refBranch = it2->second;
+
+        // add the the min(ref, hyp) n-gram count
+        counts[depth] += std::min(hypBranch.count, refBranch.count);
+
+        // recursively process (n+1)-grams
+        if (depth+1 < bleuOrder) {
+            countNGrams(hypBranch, refBranch, depth+1, counts);
         }
     }
 }
 
+// accumulate counts for all hypotheses in lattice
 void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& reference, vector<BleuStats>& stats)
 {
     NGramTree refTree;
     for (size_t pos=0; pos<reference.size(); ++pos) {
         buildNGramTree(reference, refTree, pos, reference.size(),0);
     }
+//    cout << "Reference [" << reference << "]" << endl;
     size_t K = a.size();
     for (size_t i = 0; i < K; i++) {
         if (i>0) resetNGramTree(refTree,0);
@@ -91,13 +104,24 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a, const Phrase& ref
         a[i].getHypothesis(lattice, hyp);
         const size_t hypSize = hyp.size();
         BleuStats lineStats(hypSize, a[i].leftBound);
+
+        NGramTree hypTree;
         for (size_t pos=0; pos<hypSize; ++pos) {
-            countNGrams(hyp, refTree, pos, hypSize, 0, lineStats.counts);
+            buildNGramTree(hyp, hypTree, pos, hypSize, 0);
         }
+        countNGrams(hypTree, refTree, 0, lineStats.counts);
+        
         stats.push_back(lineStats);
+//        cout << "Stats for [" << hyp << "] = ";
+//        cout << lineStats.counts[0] << ", ";
+//        cout << lineStats.counts[1] << ", ";
+//        cout << lineStats.counts[2] << ", ";
+//        cout << lineStats.counts[3] << endl;
     }
 }
 
+
+// accumulate differences, so that they can be easily merged
 void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedCounts)
 {
 /* takes BleuStats data for a single sentences and appends difference vectors to cumulatedCounts */
@@ -105,7 +129,7 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
     int oldCount[bleuOrder*2] = {0};
     int oldLength = 0;
     for (size_t i=0;i<nStats;++i) {
-        vector<int> diffs((bleuOrder + 1)*2);
+        vector<int> diffs(bleuOrder * 2);
         int length = stats[i].length;
         for (size_t n =0; n<bleuOrder;n++) {
             int curr = stats[i].counts[n];
@@ -115,8 +139,9 @@ void accumulateBleu(const vector<BleuStats>& stats, vector<boundary>& cumulatedC
             diffs[n+bleuOrder] = possibleNGrams - oldCount[n+bleuOrder];
             oldCount[n+bleuOrder] = possibleNGrams;
         }
-        diffs[bleuOrder] = length - oldLength;
-        oldLength = length;
+        // no need to store length differences; length is the same as possible unigram count
+        //diffs[bleuOrder] = length - oldLength;
+        //oldLength = length;
         cumulatedCounts.push_back( boundary(stats[i].leftBoundary,diffs) );
     }
 }
@@ -141,6 +166,7 @@ double Bleu(int p[], size_t refLength)
     return exp(score);
 }
 
+// sweep the axis while merging the accumulated differences and tracking BLEU score
 void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval, size_t refLength)
 {
     std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
