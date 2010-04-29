@@ -15,6 +15,7 @@ static struct argp_option options[] = {
 //    {"quiet",    'q', 0,      0,  "Don't produce any output" },
 //    {"silent",   's', 0,      OPTION_ALIAS },
     {"reference", 'r', "file", 0, "Reference translation file" },
+    {"randomvectors", 'd', "count", 0, "Number of random direction vectors (0 = uniform)" },
     {"lambda",   'l', "weights", 0, "Feature weights (lambda vector)" },
     {"maxi",   'm', "iteration", 0, "maximum number of iterations" },
     { 0 }
@@ -59,6 +60,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 
          case 'l':
            arguments->parseLambdas(arg);
+           break;
+
+         case 'd':
+           arguments->randomVectorCount = atoi(arg);
            break;
 
          case ARGP_KEY_ARG:

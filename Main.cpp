@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <list>
 #include <cmath>
@@ -33,17 +34,41 @@ void readReference(istream &is_ref, Phrase &reference)
         assert( reference[i].length() > 0 );
 }
 
+double randomDouble(double low, double high) 
+{
+    return (rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (high - low) + low;
+}
+
+void generateRandomVector(vector<double> &vector)
+{
+    for (size_t i = 0; i < vector.size(); i++) 
+    {
+        vector[i] = randomDouble(0.0, 1.0);
+    }
+}
+
 Result doIteration(const Parameters &params)
 {
 	size_t nDimensions = params.lambdas.size();
-	size_t nDirections = nDimensions; // might be higher of lower in case of random directions
-//	nDirections = 15;
-    vector< vector<double> > directions(nDirections);
-    for (size_t d=0;d<nDirections;d++) {
-        for (size_t i = 0; i < nDimensions; i++) {
-            directions[d].push_back((i == d) ? 1.0 : 0.0);
+	size_t nDirections = params.randomVectorCount; // might be higher of lower in case of random directions
+        vector< vector<double> > directions;
+
+        if (nDirections == 0) {
+            nDirections = nDimensions;
+            directions.resize(nDirections);
+            for (size_t d=0;d<nDirections;d++) {
+                for (size_t i = 0; i < nDimensions; i++) {
+                    directions[d].push_back((i == d) ? 1.0 : 0.0);
+                }
+            }
         }
-    }
+        else {
+            directions.resize(nDirections);
+            for (size_t d=0;d<nDirections;d++) {
+                directions[d].resize(nDimensions);
+                generateRandomVector(directions[d]);
+            }
+        }
 
     ifstream is_ref(params.referencePath);
     ifstream is_osg(params.inputPath);
@@ -79,7 +104,7 @@ Result doIteration(const Parameters &params)
     cout << endl;
     Interval bestInterval;
     size_t bestDirection = 0;
-	for (size_t d=0;d<nDirections;d++) {
+    for (size_t d=0;d<nDirections;d++) {
         vector<boundary> &cumulatedCounts = differenceVectors[d];
         Interval currInterval;
         optimizeBleu(cumulatedCounts, currInterval, refLength);
@@ -131,6 +156,7 @@ void printParams(const Parameters &params)
     cout << "Parameters:" << endl;
     cout << "  Input path: " << params.inputPath << endl;
     cout << "  Reference path: " << params.referencePath << endl;
+    cout << "  Random vector count: " << params.randomVectorCount << endl;
     cout << "  Lambda: ";
     for (size_t i = 0; i < params.lambdas.size(); i++)
         cout << params.lambdas[i] << " ";
