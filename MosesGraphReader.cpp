@@ -28,6 +28,7 @@ MosesGraphReader::MosesGraphReader(istream &is) : is(is)
 
 void MosesGraphReader::parseLine(const string &line, Entry &e)
 {
+//    cerr << "Parsing [" << line << "]" << endl;
     string suffix = line;
 
     getSentenceNumber(suffix, e);
@@ -102,6 +103,7 @@ void MosesGraphReader::getPhrase(string &suffix, Entry &e)
 
 //        cout << "  [" << token << "]" << endl;
         e.phrase.push_back(token);
+        if (pos2 == string::npos) break;
     }
     suffix = suffix.substr(pos1);
 }
