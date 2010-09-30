@@ -108,6 +108,7 @@ Result doIteration(const Parameters &params)
         vector<boundary> &cumulatedCounts = differenceVectors[d];
         Interval currInterval;
         optimizeBleu(cumulatedCounts, currInterval, refLength);
+        cout << "BestInterval [" << currInterval.left << " - " << currInterval.right << "] score: " << currInterval.score << endl;
         if (d==0 || currInterval.score > bestInterval.score) {
             bestInterval = currInterval;
             bestDirection = d;

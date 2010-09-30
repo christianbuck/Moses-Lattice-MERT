@@ -172,7 +172,7 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval, siz
     std::sort(cumulatedCounts.begin(), cumulatedCounts.end());
     int p[bleuOrder*2] = {0};
     size_t nCounts = cumulatedCounts.size();
-    cout << "considering " << nCounts << " line intersections" << endl;
+//    cout << "considering " << nCounts << " line intersections" << endl;
 
     bestInterval.score = -numeric_limits<double>::infinity();
     double oldBoundary = -numeric_limits<double>::infinity();
@@ -204,7 +204,6 @@ void optimizeBleu(vector<boundary>& cumulatedCounts, Interval& bestInterval, siz
         bestInterval.score = bleuScore;
     }
     assert (bestInterval.score > -numeric_limits<double>::infinity());
-    cout << "Final BestInterval [" << bestInterval.left << " - " << bestInterval.right << "] score: " << bestInterval.score << endl;
 
 }
 
