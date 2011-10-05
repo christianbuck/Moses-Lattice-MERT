@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include <assert.h>
 
 #include <boost/regex.hpp>
@@ -20,124 +19,139 @@ regex MosesGraphReader::rx_line1("^back=(\\d+) \\[ (.*) \\] out=(.*) $");
 regex MosesGraphReader::rx_line2("\\w+:");
 regex MosesGraphReader::rx_line3("-?\\d+(\\.\\d+)?");
 
-MosesGraphReader::MosesGraphReader(istream &is) : is(is)
+MosesGraphReader::MosesGraphReader(istream &is) :
+    is(is)
 {
-    string line;
-    getline(is, line);
+  string line;
+  getline(is, line);
 }
 
 void MosesGraphReader::parseLine(const string &line, Entry &e)
 {
 //    cerr << "Parsing [" << line << "]" << endl;
-    string suffix = line;
+  string suffix = line;
 
-    getSentenceNumber(suffix, e);
-    getHypothesis(suffix, e);
-    if (e.hyp == 0) return;
-    getBackRef(suffix, e);
-    getFeatures(suffix, e);
-    getPhrase(suffix, e);
+  getSentenceNumber(suffix, e);
+  getHypothesis(suffix, e);
+  if (e.hyp == 0)
+    return;
+  getBackRef(suffix, e);
+  getFeatures(suffix, e);
+  getPhrase(suffix, e);
 }
 
 void MosesGraphReader::getSentenceNumber(string &suffix, Entry &e)
 {
-    size_t pos = suffix.find_first_of(' ');
-    e.sentence = lexical_cast<size_t>(suffix.substr(0, pos));
-    suffix = suffix.substr(pos + 1);
+  size_t pos = suffix.find_first_of(' ');
+  e.sentence = lexical_cast < size_t > (suffix.substr(0, pos));
+  suffix = suffix.substr(pos + 1);
 }
 
 void MosesGraphReader::getHypothesis(string &suffix, Entry &e)
 {
-    size_t pos1 = suffix.find_first_of('=');
-    size_t pos2 = suffix.find_first_of(' ');
-    pos1++;
-    e.hyp = lexical_cast<size_t>(suffix.substr(pos1, pos2 - pos1));
-    suffix = suffix.substr(pos2 + 1);
+  size_t pos1 = suffix.find_first_of('=');
+  size_t pos2 = suffix.find_first_of(' ');
+  pos1++;
+  e.hyp = lexical_cast < size_t > (suffix.substr(pos1, pos2 - pos1));
+  suffix = suffix.substr(pos2 + 1);
 }
 
 void MosesGraphReader::getBackRef(string &suffix, Entry &e)
 {
-    size_t pos1 = suffix.find_first_of('=');
-    size_t pos2 = suffix.find_first_of(' ');
-    pos1++;
-    e.back = lexical_cast<size_t>(suffix.substr(pos1, pos2 - pos1));
-    suffix = suffix.substr(pos2 + 1);
+  size_t pos1 = suffix.find_first_of('=');
+  size_t pos2 = suffix.find_first_of(' ');
+  pos1++;
+  e.back = lexical_cast < size_t > (suffix.substr(pos1, pos2 - pos1));
+  suffix = suffix.substr(pos2 + 1);
 }
 
 void MosesGraphReader::getFeatures(string &suffix, Entry &e)
 {
-    // suffix[0] == '['
-    size_t pos1 = 0;
-    while (pos1 < suffix.size()) {
-        size_t pos2 = suffix.find_first_of(' ', pos1);
-        if (pos2 == string::npos) break;
+  // suffix[0] == '['
+  size_t pos1 = 0;
+  while (pos1 < suffix.size())
+  {
+    size_t pos2 = suffix.find_first_of(' ', pos1);
+    if (pos2 == string::npos)
+      break;
 
-        // get the token
-        const string &token = suffix.substr(pos1, pos2 - pos1);
-        pos1 = pos2 + 1;
+    // get the token
+    const string &token = suffix.substr(pos1, pos2 - pos1);
+    pos1 = pos2 + 1;
 
-        // check for the brackets
-        if (token == "[") continue;
-        if (token == "]") break;
+    // check for the brackets
+    if (token == "[")
+      continue;
+    if (token == "]")
+      break;
 
-        // check if it is not a descriptor
-        if (token[token.size() - 1] != ':') {
-            FeatureValue feature = lexical_cast<FeatureValue>(token);
-            e.features.push_back(feature);
+    // check if it is not a descriptor
+    if (token[token.size() - 1] != ':')
+    {
+      FeatureValue feature = lexical_cast < FeatureValue > (token);
+      e.features.push_back(feature);
 //            cout << "  [" << feature << "]" << endl;
-        }
     }
-    suffix = suffix.substr(pos1);
+  }
+  suffix = suffix.substr(pos1);
 }
 
 void MosesGraphReader::getPhrase(string &suffix, Entry &e)
 {
-    size_t pos1 = suffix.find_first_of('=');
-    pos1++;
-    while (pos1 < suffix.size()) {
-        size_t pos2 = suffix.find_first_of(' ', pos1);
+  size_t pos1 = suffix.find_first_of('=');
+  pos1++;
+  while (pos1 < suffix.size())
+  {
+    size_t pos2 = suffix.find_first_of(' ', pos1);
 
-        // get the token
-        const string &token = (pos2 != string::npos) ? suffix.substr(pos1, pos2 - pos1) : suffix.substr(pos1);
-        pos1 = pos2 + 1;
+    // get the token
+    const string &token =
+        (pos2 != string::npos) ?
+            suffix.substr(pos1, pos2 - pos1) : suffix.substr(pos1);
+    pos1 = pos2 + 1;
 
 //        cout << "  [" << token << "]" << endl;
-        e.phrase.push_back(token);
-        if (pos2 == string::npos) break;
-    }
-    suffix = suffix.substr(pos1);
+    e.phrase.push_back(token);
+    if (pos2 == string::npos)
+      break;
+  }
+  suffix = suffix.substr(pos1);
 }
 
 bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 {
-    size_t n = 0;
-    if (is.eof()) return false;
-    while (!is.eof()) {
-        string line;
-        getline(is, line);
-        if (is.eof()) break;
+  size_t n = 0;
+  if (is.eof())
+    return false;
+  while (!is.eof())
+  {
+    string line;
+    getline(is, line);
+    if (is.eof())
+      break;
 
-        Entry e;
-        parseLine(line, e);
+    Entry e;
+    parseLine(line, e);
 
-        if (e.hyp == 0) break;
+    if (e.hyp == 0)
+      break;
 
-        // add the edge to the lattice
+    // add the edge to the lattice
 //        cout << "Edge " << backId << " - " << hypId << " phrase [" << phrase << "]" << endl;
 //        cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
 
-        Lattice::Edge edge;
-        edge.scores = e.features;
-        edge.phrase = e.phrase;
-        edge.from = e.back;
-        edge.to = e.hyp;
-        n = e.features.size();
-        lattice.addEdge(edge);
+    Lattice::Edge edge;
+    edge.scores = e.features;
+    edge.phrase = e.phrase;
+    edge.from = e.back;
+    edge.to = e.hyp;
+    n = e.features.size();
+    lattice.addEdge(edge);
 
-        for (size_t i = 0; i < edge.phrase.size(); i++)
-            assert( edge.phrase[i].length() > 0 );
-    }
+    for (size_t i = 0; i < edge.phrase.size(); i++)
+      assert( edge.phrase[i].length() > 0);
+  }
 //    cout << "Lattice vertices " << lattice.getVertexCount() << " edges " << lattice.getEdgeCount() << endl;
-    lattice.createSink();
-    return true;
+  lattice.createSink();
+  return true;
 }

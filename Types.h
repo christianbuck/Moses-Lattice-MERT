@@ -15,7 +15,7 @@ using std::ostream;
 typedef wstring String;
 typedef string Word;
 typedef vector<Word> Phrase;
-typedef double FeatureValue; 
+typedef double FeatureValue;
 typedef vector<FeatureValue> FeatureVector;
 
 typedef pair<double, vector<int> > boundary;
@@ -24,29 +24,26 @@ const size_t bleuOrder = 4;
 
 struct Interval
 {
-    Interval() {
-        score = -numeric_limits<double>::infinity();
-        left = 0.0;
-        right = 0.0;
-    }
-    double score;
-    double left;
-    double right;
+  Interval()
+  {
+    score = -numeric_limits<double>::infinity();
+    left = 0.0;
+    right = 0.0;
+  }
+  double score;
+  double left;
+  double right;
 };
 
 struct Result
 {
-    double score;
-    FeatureVector lambdas;
-    Result(double s) {
-        score = s;
-    }
+  double score;
+  FeatureVector lambdas;
+  Result(double s)
+  {
+    score = s;
+  }
 };
-    
-    
-    
-    
-ostream & operator << (ostream &os, const Phrase& p);
 
-
+ostream & operator <<(ostream &os, const Phrase& p);
 

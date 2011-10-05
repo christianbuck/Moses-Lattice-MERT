@@ -8,30 +8,35 @@ using namespace std;
 #include "Types.h"
 #include "BleuScorer.h"
 
-ostream & operator << (ostream &os, const Phrase& p) {
-    for (size_t i = 0; i < p.size(); i++) {
-        if (i > 0) os << " ";
-        os << p[i];
-    }
-    return os;
+ostream & operator <<(ostream &os, const Phrase& p)
+{
+  for (size_t i = 0; i < p.size(); i++)
+  {
+    if (i > 0)
+      os << " ";
+    os << p[i];
+  }
+  return os;
 }
 
 BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
 {
-    const size_t refSize = ref.size();
-    NGramTree refTree;
-    for (size_t pos = 0; pos < refSize; ++pos) {
-        buildNGramTree(ref, refTree, pos, refSize,0);
-    }
-    const size_t hypSize = hyp.size();
-    BleuStats lineStats(hypSize, 0);
+  const size_t refSize = ref.size();
+  NGramTree refTree;
+  for (size_t pos = 0; pos < refSize; ++pos)
+  {
+    buildNGramTree(ref, refTree, pos, refSize, 0);
+  }
+  const size_t hypSize = hyp.size();
+  BleuStats lineStats(hypSize, 0);
 
-    NGramTree hypTree;
-    for (size_t pos = 0; pos < hypSize; ++pos) {
-        buildNGramTree(hyp, hypTree, pos, hypSize, 0);
-    }
+  NGramTree hypTree;
+  for (size_t pos = 0; pos < hypSize; ++pos)
+  {
+    buildNGramTree(hyp, hypTree, pos, hypSize, 0);
+  }
 
-    countNGrams(hypTree, refTree, 0, lineStats.counts);
+  countNGrams(hypTree, refTree, 0, lineStats.counts);
 //        cout << "Ref: " << ref << endl;
 //        cout << "Hyp: " << hyp << endl;
 //        cout << "Stats: ";
@@ -39,53 +44,59 @@ BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
 //        cout << lineStats.counts[1] << ", ";
 //        cout << lineStats.counts[2] << ", ";
 //        cout << lineStats.counts[3] << endl;
-    return lineStats;
+  return lineStats;
 }
 
 void readPhrase(istream &is, Phrase &phrase)
 {
-    string line;
-    getline(is, line);
-    istringstream iss(line);
-    copy(istream_iterator<string>(iss),
-        istream_iterator<string>(),
-        back_inserter<vector<string> >(phrase));
+  string line;
+  getline(is, line);
+  istringstream iss(line);
+  copy(istream_iterator<string>(iss), istream_iterator<string>(),
+      back_inserter<vector<string> >(phrase));
 //    for (size_t i = 0; i < phrase.size(); i++)
 //        assert( phrase[i].length() > 0 );
 }
 
 int main(int argc, char** argv)
 {
-    if (argc < 3) return 1;
-    char *pathHyp = argv[1];
-    char *pathRef = argv[2];
-    ifstream isHyp(pathHyp), isRef(pathRef);
-    vector<boundary> counts;
-    size_t totalRefSize = 0;
-    while (isHyp && isRef) {
-        Phrase hyp, ref;
-        readPhrase(isHyp, hyp);
-        readPhrase(isRef, ref);
+  if (argc < 3)
+    return 1;
+  char *pathHyp = argv[1];
+  char *pathRef = argv[2];
+  ifstream isHyp(pathHyp), isRef(pathRef);
+  vector<boundary> counts;
+  size_t totalRefSize = 0;
+  while (isHyp && isRef)
+  {
+    Phrase hyp, ref;
+    readPhrase(isHyp, hyp);
+    readPhrase(isRef, ref);
 //        cout << "Hyp: " << hyp << endl;
 //        cout << "Ref: " << ref << endl;
-        if (!isHyp || !isRef) break;
-        vector<BleuStats> stats;
-        stats.push_back(computeBleuStats(hyp, ref));
-        accumulateBleu(stats, counts);
-        totalRefSize += ref.size();
-    }
+    if (!isHyp || !isRef)
+      break;
+    vector<BleuStats> stats;
+    stats.push_back(computeBleuStats(hyp, ref));
+    accumulateBleu(stats, counts);
+    totalRefSize += ref.size();
+  }
 
-    int totalCounts[8] = {0};
-    for (size_t i = 0; i < counts.size(); i++) {
-        for (size_t j = 0; j < 8; j++)
-            totalCounts[j] += counts[i].second[j];
-    }
+  int totalCounts[8] =
+  { 0 };
+  for (size_t i = 0; i < counts.size(); i++)
+  {
+    for (size_t j = 0; j < 8; j++)
+      totalCounts[j] += counts[i].second[j];
+  }
 
-    for (size_t i = 0; i < 4; i++) {
-        cout << "Correct" << i << " = " << totalCounts[i] << "/" << totalCounts[i + 4] << endl;
-    }
-    Interval interval;
-    optimizeBleu(counts, interval, totalRefSize);
-    cout << interval.score << endl;
+  for (size_t i = 0; i < 4; i++)
+  {
+    cout << "Correct" << i << " = " << totalCounts[i] << "/"
+        << totalCounts[i + 4] << endl;
+  }
+  Interval interval;
+  optimizeBleu(counts, interval, totalRefSize);
+  cout << interval.score << endl;
 }
 

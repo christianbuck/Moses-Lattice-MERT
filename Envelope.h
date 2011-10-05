@@ -2,13 +2,14 @@
 // dagiterator
 #include "Types.h"
 
-class DagIterator {
+class DagIterator
+{
 public:
-    Vertex getVertex();
-    bool next();
-    DagIterator(Vertex);
-        
+  Vertex getVertex();
+  bool next();
+  DagIterator(Vertex);
+
 private:
-    vector<Vertex> pendingVertices;
+  vector<Vertex> pendingVertices;
 };
 
