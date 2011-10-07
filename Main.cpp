@@ -162,7 +162,7 @@ Result doIteration(const Parameters &params)
       bestVal = (bestInterval.right + bestInterval.left) / 2;
     }
   }
-  // normalize lambdas
+  // Normalise lambdas
   double norm1 = 0;
   FeatureVector bestLambdas(nDimensions);
   for (size_t i = 0; i < nDimensions; i++)
