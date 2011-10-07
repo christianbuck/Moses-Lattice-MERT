@@ -1,14 +1,13 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <list>
 #include <cmath>
-
-#include <boost/regex.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
+#include <assert.h>
 
 #include "MosesGraphReader.h"
 #include "BleuScorer.h"
@@ -29,12 +28,16 @@ void readReference(istream &is_ref, Phrase &reference)
 {
   string line;
   getline(is_ref, line);
-  boost::split(reference, line, boost::is_any_of(" "));
+  std::istringstream iss(line);
+  std::copy(std::istream_iterator<Word>(iss), std::istream_iterator<Word>(),
+      std::back_inserter<Phrase>(reference));
   for (size_t i = 0; i < reference.size(); i++)
+  {
     assert(reference[i].length() > 0);
+  }
 }
 
-double randomDouble(double low, double high)
+double randomDouble(const double low, const double high)
 {
   return (rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (high - low) + low;
 }
