@@ -114,8 +114,7 @@ void computeBleuStats(Lattice &lattice, const vector<Line>& a,
     buildNGramTree(reference, refTree, pos, reference.size(), 0);
   }
 //    cout << "Reference [" << reference << "]" << endl;
-  size_t K = a.size();
-  for (size_t i = 0; i < K; i++)
+  for (size_t i = 0; i < a.size(); i++)
   {
     if (i > 0)
       resetNGramTree(refTree, 0);
@@ -148,7 +147,6 @@ void accumulateBleu(const vector<BleuStats>& stats,
   size_t nStats = stats.size();
   int oldCount[bleuOrder * 2] =
   { 0 };
-  int oldLength = 0;
   for (size_t i = 0; i < nStats; ++i)
   {
     vector<int> diffs(bleuOrder * 2);
