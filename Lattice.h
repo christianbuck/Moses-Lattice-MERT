@@ -2,7 +2,7 @@
 
 #include <map>
 #include <vector>
-
+#include <assert.h>
 #include "Types.h"
 
 class Lattice
@@ -42,16 +42,16 @@ public:
 
   void createSink()
   {
-    size_t skey = 9999999;
+    size_t sink_vkey = 999999999;
 
     for (std::map<VertexKey, Vertex>::iterator it = vertices.begin();
         it != vertices.end(); it++)
     {
-      if (it->second.out.size() == 0 && it->first != skey)
+      if (it->second.out.size() == 0 && it->first != sink_vkey)
       {
         Edge edge;
         edge.from = it->first;
-        edge.to = skey;
+        edge.to = sink_vkey;
         addEdge(edge);
       }
     }
@@ -59,10 +59,13 @@ public:
 
   Vertex & getVertex(VertexKey key)
   {
+    assert(vertices.find(key) != vertices.end());
     return vertices[key];
   }
   Edge & getEdge(EdgeKey key)
   {
+//    std::cout << key << " of " << edges.size() << std::endl;
+    assert (key < edges.size());
     return edges[key];
   }
   size_t getVertexCount() const
@@ -138,12 +141,33 @@ struct Line
   double slope;      // line slope (m)
   double offset;     // line offset (b)
   double leftBound;  // left boundary
-  vector<Lattice::EdgeKey> path; // path through the graph
+
+  void addEdge(const Lattice& lattice, Lattice::EdgeKey edgekey) {
+    assert (edgekey < lattice.getEdgeCount());
+//    assert (edgekey < 1000000);
+//    for (size_t i = 0; i < path.size(); ++i) {
+//      assert(path[i] < lattice.getEdgeCount());
+//    }
+    path.push_back(edgekey);
+
+  }
+
+  const vector<Lattice::EdgeKey>& getPath() const {
+    return path;
+  }
 
   Line() :
       slope(0), offset(0), leftBound(-numeric_limits<double>::infinity())
   {
   }
+
+//  Line(const Line& l):
+//    slope(l.slope), offset(l.offset), leftBound(l.leftBound), path(l.path)
+//  {
+//    for (size_t i = 0; i < path.size(); ++i) {
+//      assert(path[i] < 1000000);
+//    }
+//  }
 
   void getHypothesis(Lattice &lattice, Phrase &hypothesis) const
   {
@@ -158,6 +182,11 @@ struct Line
   {
     return a.slope < b.slope;
   }
+
+private:
+  vector<Lattice::EdgeKey> path; // path through the graph
+
+
 };
 
 void latticeEnvelope(Lattice &lattice, const FeatureVector& d,
