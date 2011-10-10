@@ -91,8 +91,9 @@ Result doIteration(const Parameters &params)
   {
     Lattice lattice;
     if (!reader.GetNextLattice(lattice))
+    {
       break;
-
+    }
     Phrase reference;
     readReference(is_ref, reference);
     refLength += reference.size();
