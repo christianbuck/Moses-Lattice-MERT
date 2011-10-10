@@ -4,9 +4,11 @@
 #include <cassert>
 
 #include <list>
+#include <queue>
 
 #include "Lattice.h"
 #include "Types.h"
+#include "Util.h"
 
 using std::numeric_limits;
 using std::vector;
