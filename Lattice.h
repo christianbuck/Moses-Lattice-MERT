@@ -144,12 +144,7 @@ struct Line
 
   void addEdge(const Lattice& lattice, Lattice::EdgeKey edgekey) {
     assert (edgekey < lattice.getEdgeCount());
-//    assert (edgekey < 1000000);
-//    for (size_t i = 0; i < path.size(); ++i) {
-//      assert(path[i] < lattice.getEdgeCount());
-//    }
     path.push_back(edgekey);
-
   }
 
   const vector<Lattice::EdgeKey>& getPath() const {
@@ -160,14 +155,6 @@ struct Line
       slope(0), offset(0), leftBound(-numeric_limits<double>::infinity())
   {
   }
-
-//  Line(const Line& l):
-//    slope(l.slope), offset(l.offset), leftBound(l.leftBound), path(l.path)
-//  {
-//    for (size_t i = 0; i < path.size(); ++i) {
-//      assert(path[i] < 1000000);
-//    }
-//  }
 
   void getHypothesis(Lattice &lattice, Phrase &hypothesis) const
   {
