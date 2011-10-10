@@ -24,6 +24,10 @@ ifeq ($(OPTION),iccprof)
 CXXFLAGS += -debug full
 endif
 
+ifeq ($(OPTION),icc)
+CXXFLAGS += -DNDEBUG -ip -axSSE4.2,SSSE3,SSE2 -fp-model fast=2 -ipo
+LDFLAGS += -ipo
+endif
 
 ifeq ($(OPTIMIZE_OPTION),yes)
 CXXFLAGS += -O3
