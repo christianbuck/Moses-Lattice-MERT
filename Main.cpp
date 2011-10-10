@@ -50,6 +50,28 @@ void generateRandomVector(vector<double> &vector)
   }
 }
 
+void getDirectionsAxes(vector<vector<double> >& directions, const size_t dim, const size_t n) {
+  directions.resize(n);
+  for (size_t d = 0; d < n; d++)
+  {
+    directions[d].clear();
+    for (size_t i = 0; i < dim; i++)
+    {
+      directions[d].push_back((i == d) ? 1.0 : 0.0);
+    }
+  }
+}
+
+void getDirectionsRandom(vector<vector<double> >& directions, const size_t dim, const size_t n) {
+  directions.resize(n);
+  for (size_t d = 0; d < n; d++)
+  {
+    directions[d].resize(dim);
+    generateRandomVector(directions[d]);
+  }
+}
+
+
 Result doIteration(const Parameters &params)
 {
   size_t nDimensions = params.lambdas.size();
@@ -59,23 +81,11 @@ Result doIteration(const Parameters &params)
   if (nDirections == 0)
   {
     nDirections = nDimensions;
-    directions.resize(nDirections);
-    for (size_t d = 0; d < nDirections; d++)
-    {
-      for (size_t i = 0; i < nDimensions; i++)
-      {
-        directions[d].push_back((i == d) ? 1.0 : 0.0);
-      }
-    }
+    getDirectionsAxes(directions, nDimensions, nDirections);
   }
   else
   {
-    directions.resize(nDirections);
-    for (size_t d = 0; d < nDirections; d++)
-    {
-      directions[d].resize(nDimensions);
-      generateRandomVector(directions[d]);
-    }
+    getDirectionsRandom(directions, nDimensions, nDirections);
   }
 
   ifstream is_ref(params.referencePath);
@@ -83,7 +93,6 @@ Result doIteration(const Parameters &params)
   MosesGraphReader reader(is_osg);
 
   vector<vector<boundary> > differenceVectors(directions.size());
-//    vector<boundary> &cumulatedCounts;
 
   cout << endl;
   size_t refLength = 0;
@@ -114,6 +123,7 @@ Result doIteration(const Parameters &params)
     }
   }
   cout << endl;
+
   Interval bestInterval;
   size_t bestDirection = 0;
   for (size_t d = 0; d < nDirections; d++)
