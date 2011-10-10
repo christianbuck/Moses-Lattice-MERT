@@ -1,4 +1,4 @@
-CXX = cc
+CXX ?= cc
 
 OBJS=MosesGraphReader.o Lattice.o BleuScorer.o Main.o Parameters.o
 
@@ -11,7 +11,7 @@ ifeq ($(DEBUG_OPTION),yes)
 CXXFLAGS += -g
 LDFLAGS += -g
 else
-OPTIMIZE_OPTION = yes
+OPTIMIZE_OPTION ?= yes
 endif
 
 ifeq ($(PROFILE_OPTION),yes)
@@ -19,6 +19,11 @@ CXXFLAGS += -pg -lc -g
 LDFLAGS += -pg -lc -g
 OPTIMIZE_OPTION = no
 endif
+
+ifeq ($(OPTION),iccprof)
+CXXFLAGS += -debug full
+endif
+
 
 ifeq ($(OPTIMIZE_OPTION),yes)
 CXXFLAGS += -O3
