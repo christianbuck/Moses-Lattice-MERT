@@ -1,8 +1,6 @@
 #include <limits>
 #include <iostream>
-#include <algorithm>
 #include <cassert>
-
 #include <list>
 #include <queue>
 
@@ -13,21 +11,9 @@
 using std::numeric_limits;
 using std::vector;
 using std::list;
-using std::map;
 using std::ostream;
 using std::cout;
 using std::endl;
-
-ostream & operator <<(ostream &os, const Phrase& p)
-{
-  for (size_t i = 0; i < p.size(); i++)
-  {
-    if (i > 0)
-      os << " ";
-    os << p[i];
-  }
-  return os;
-}
 
 struct compare_lists
 {

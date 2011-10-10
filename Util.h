@@ -22,4 +22,16 @@ double dotProduct(const vector<F>& a, const vector<F>& b)
   return p;
 }
 
+ostream & operator <<(ostream &os, const Phrase& p)
+{
+  for (size_t i = 0; i < p.size(); i++)
+  {
+    if (i > 0)
+      os << " ";
+    os << p[i];
+  }
+  return os;
+}
+
+
 #endif /* UTIL_H_ */
