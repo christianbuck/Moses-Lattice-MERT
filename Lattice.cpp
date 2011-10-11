@@ -33,8 +33,9 @@ void mergeAndSweep(vector<list<Line>* >& input, list<Line>& a) {
     bool discard_line = false;
     if (!a.empty())
     {
-      if (a.back().slope == l.slope) {
-        if (l.offset <= a.back().offset) {
+      const Line& prev = a.back();
+      if (prev.slope == l.slope) {
+        if (l.offset <= prev.offset) {
           discard_line = true;
         } else {
           a.pop_back();
@@ -42,8 +43,9 @@ void mergeAndSweep(vector<list<Line>* >& input, list<Line>& a) {
       }
       while (!discard_line && !a.empty())
       {
-        l.leftBound = (l.offset - a.back().offset) / (a.back().slope - l.slope);
-        if (l.leftBound > a.back().leftBound)
+        const Line& prev = a.back();
+        l.leftBound = (l.offset - prev.offset) / (prev.slope - l.slope);
+        if (l.leftBound > prev.leftBound)
           break;
         a.pop_back();
       }
