@@ -103,7 +103,7 @@ void latticeEnvelope(Lattice &lattice, const FeatureVector &dir,
     for (size_t i = 0; i < v.out.size(); ++i)
     {
       const Lattice::EdgeKey edgekey = v.out[i];
-      Lattice::Edge &edge = lattice.getEdge(edgekey);
+      const Lattice::Edge& edge = lattice.getEdge(edgekey);
 
       L[edgekey] = a; // copies all the lines
       // update unless the edge leads to the sink node and has no feature score vector

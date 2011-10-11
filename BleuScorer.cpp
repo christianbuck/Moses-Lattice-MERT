@@ -105,7 +105,7 @@ void countNGrams(NGramTree &hypTree, NGramTree& refTree, const size_t depth,
 }
 
 // accumulate counts for all hypotheses in lattice
-void computeBleuStats(Lattice &lattice, const vector<Line>& a,
+void computeBleuStats(const Lattice& lattice, const vector<Line>& a,
     const Phrase& reference, vector<BleuStats>& stats)
 {
   NGramTree refTree;

@@ -57,21 +57,23 @@ public:
     }
   }
 
-  Vertex & getVertex(VertexKey key)
+  Vertex & getVertex(const VertexKey key)
   {
     assert(vertices.find(key) != vertices.end());
     return vertices[key];
   }
-  Edge & getEdge(EdgeKey key)
+
+  const Edge& getEdge(const EdgeKey key) const
   {
-//    std::cout << key << " of " << edges.size() << std::endl;
     assert (key < edges.size());
     return edges[key];
   }
+
   size_t getVertexCount() const
   {
     return vertices.size();
   }
+
   size_t getEdgeCount() const
   {
     return edges.size();
@@ -102,7 +104,7 @@ public:
     pendingVertices.pop_back();
     for (size_t i = 0; i < v.out.size(); ++i)
     {
-      Lattice::Edge &edge = lattice.getEdge(v.out[i]);
+      const Lattice::Edge &edge = lattice.getEdge(v.out[i]);
       Lattice::Vertex& vEnd = lattice.getVertex(edge.to);
       if (++vEnd.in_visited % vEnd.in.size() == 0)
       {
@@ -156,7 +158,7 @@ struct Line
   {
   }
 
-  void getHypothesis(Lattice &lattice, Phrase &hypothesis) const
+  void getHypothesis(const Lattice &lattice, Phrase &hypothesis) const
   {
     for (size_t i = 0; i < path.size(); i++)
     {
