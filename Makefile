@@ -14,6 +14,10 @@ else
 OPTIMIZE_OPTION ?= yes
 endif
 
+ifeq ($(OPENMP_OPTION),yes)
+CXXFLAGS += -fopenmp
+endif
+
 ifeq ($(PROFILE_OPTION),yes)
 CXXFLAGS += -pg -lc -g
 LDFLAGS += -pg -lc -g
@@ -43,9 +47,9 @@ BleuTest: BleuTest.o BleuScorer.o Makefile
 
 LatticeMERT: $(OBJS) Makefile
 	@echo "***>" LatticeMERT "<***"
-	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT  
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) -o LatticeMERT
 
-%.o : %.cpp Types.h
+%.o : %.cpp *.h Types.h Makefile
 	@echo "***" $< "***"
 	$(CXX) $(CXXFLAGS) -c $< -o $@  
 
@@ -58,6 +62,9 @@ debug: Makefile
 
 prof: Makefile
 	$(MAKE) $(MAKEFILE) PROFILE_OPTION=yes
+
+omp: Makefile
+	$(MAKE) $(MAKEFILE) OPENMP_OPTION=yes
 
 #gmon.out: prof
 #	time ./LatticeMERT > log.txt

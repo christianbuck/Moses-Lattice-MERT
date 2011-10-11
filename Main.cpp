@@ -110,16 +110,21 @@ Result doIteration(const Parameters &params)
     cout << "#";
     cout.flush();
 
+    #pragma omp parallel for shared(directions, params, reference) firstprivate(lattice)
     for (size_t d = 0; d < nDirections; d++)
     {
-      vector<boundary> &cumulatedCounts = differenceVectors[d];
-      FeatureVector &dir = directions[d];
+      const FeatureVector& dir = directions[d];
       vector<Line> envelope;
       latticeEnvelope(lattice, dir, params.lambdas, envelope);
 
       vector<BleuStats> stats;
       computeBleuStats(lattice, envelope, reference, stats);
-      accumulateBleu(stats, cumulatedCounts);
+      #pragma omp critical
+      {
+
+        vector<boundary>& cumulatedCounts = differenceVectors[d];
+        accumulateBleu(stats, cumulatedCounts);
+      }
     }
   }
   cout << endl;
