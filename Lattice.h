@@ -46,7 +46,7 @@ public:
     size_t sink_vkey = 999999999;
 
     for (std::map<VertexKey, Vertex>::iterator it = vertices.begin();
-        it != vertices.end(); it++)
+        it != vertices.end(); ++it)
     {
       if (it->second.out.size() == 0 && it->first != sink_vkey)
       {
@@ -58,9 +58,9 @@ public:
     }
   }
 
-  Vertex & getVertex(const VertexKey key)
+  Vertex& getVertex(const VertexKey key)
   {
-    assert(vertices.find(key) != vertices.end());
+    //assert(vertices.find(key) != vertices.end());
     return vertices[key];
   }
 
@@ -156,6 +156,22 @@ struct Line
   Line() :
       slope(0), offset(0), leftBound(-numeric_limits<double>::infinity())
   {
+  }
+
+  Line(const Line& l) :
+      slope(l.slope), offset(l.offset), leftBound(l.leftBound)
+  {
+    path.reserve(l.path.size()+1);
+    // path.insert(path.begin(), l.path.begin(), l.path.end());
+    path.assign(l.path.begin(), l.path.end());
+  }
+
+  Line(const Line& l, const double slope_update, const double offset_update, const Lattice::EdgeKey edgekey) :
+      slope(l.slope+slope_update), offset(l.offset+offset_update), leftBound(l.leftBound)
+  {
+    path.reserve(l.path.size()+1);
+    path.insert(path.begin(), l.path.begin(), l.path.end());
+    path.push_back(edgekey);
   }
 
   void getHypothesis(const Lattice &lattice, Phrase &hypothesis) const

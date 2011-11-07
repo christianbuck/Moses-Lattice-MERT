@@ -28,22 +28,17 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
 {
   vector<Line*> lines;
   for (vector<vector<Line*>*>::const_iterator in_it = input.begin();
-      in_it < input.end(); in_it++)
+      in_it < input.end(); ++in_it)
   {
     lines.insert(lines.end(), (*in_it)->begin(), (*in_it)->end());
   }
   sort(lines.begin(), lines.end(), Line::ComparePtrBySlope);
-  int nlines = 0;
-  for (int i = 0; i < int(input.size()); ++i)
-  {
-    nlines += input[i]->size();
-  }
-
-  for (vector<Line*>::const_iterator it = lines.begin(); it < lines.end(); it++)
+  size_t a_size = a.size();
+  for (vector<Line*>::const_iterator it = lines.begin(); it < lines.end(); ++it)
   {
     Line* const l = (*it);
     bool discard_line = false;
-    if (!a.empty())
+    if (a_size>0)
     {
       const Line* const prev = a.back();
       assert(prev->slope <= l->slope);
@@ -56,24 +51,27 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
         else
         {
           a.pop_back();
+          --a_size;
         }
       }
-      while (!discard_line && !a.empty())
+      while (!discard_line && a_size>0)
       {
         const Line* const prev = a.back();
         l->leftBound = (l->offset - prev->offset) / (prev->slope - l->slope);
         if (l->leftBound > prev->leftBound)
           break;
         a.pop_back();
+        --a_size;
       }
     }
-    if (a.empty())
+    if (a_size==0)
     {
       l->leftBound = -numeric_limits<double>::infinity();
     }
     if (!discard_line)
     {
       a.push_back(l);
+      ++a_size;
     }
   }
 }
@@ -114,17 +112,22 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
         alines.push_back(&L[edgekey]);
       }
       mergeAndSweep(alines, a);
-    }assert(!a.empty());
+    }
+    assert(!a.empty());
 
     // update hulls associated with outgoing edges
-    for (size_t i = 0; i < v.out.size(); ++i)
+    const size_t n_outedges = v.out.size();
+    //lineCache.reserve(lineCache.size()+(n_outedges-1)*a.size());
+    for (size_t i = 0; i < n_outedges; ++i)
     {
       const Lattice::EdgeKey edgekey = v.out[i];
       const Lattice::Edge& edge = lattice.getEdge(edgekey);
       vector<Line*>& lines = L[edgekey];
-      for (vector<Line*>::const_iterator li = a.begin(); li != a.end(); li++)
+      lines.reserve(a.size());
+      //lineCache.reserve(lineCache.size()+a.size());
+      for (vector<Line*>::const_iterator li = a.begin(); li != a.end(); ++li)
       {
-        if (i==v.out.size()-1) {
+        if (i==n_outedges-1) {
           lines.push_back(*li); // re-use lines from a
         } else {
           Line* const l = new Line(**li); // copy line
@@ -133,7 +136,8 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
         }
       }
       // update unless the edge leads to the sink node and has no feature score vector
-      if (edge.scores.size() > 0)
+      const bool is_sinknode = (edge.scores.size()==0);
+      if (!is_sinknode)
       {
         const double dot_dir = dotProduct(edge.scores, dir);
         const double dot_lambda = dotProduct(edge.scores, lambda);
