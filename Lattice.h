@@ -4,6 +4,8 @@
 #include <vector>
 #include <assert.h>
 #include "Types.h"
+#include <ostream>
+#include <algorithm>
 
 class Lattice
 {
@@ -93,14 +95,14 @@ public:
   {
   }
 
-  Lattice::VertexKey get()
+  Lattice::VertexKey get() const
   {
     return pendingVertices.back();
   }
 
   void findNext()
   {
-    Lattice::Vertex & v = lattice.getVertex(pendingVertices.back());
+    const Lattice::Vertex & v = lattice.getVertex(pendingVertices.back());
     pendingVertices.pop_back();
     for (size_t i = 0; i < v.out.size(); ++i)
     {
@@ -113,13 +115,13 @@ public:
     }
   }
 
-  bool isEnd()
+  bool isEnd() const
   {
     return pendingVertices.empty();
   }
 
 private:
-  Lattice &lattice;
+  Lattice& lattice;
   std::vector<Lattice::VertexKey> pendingVertices;
 };
 
@@ -144,9 +146,13 @@ struct Line
   double offset;     // line offset (b)
   double leftBound;  // left boundary
 
-  void addEdge(const Lattice& lattice, Lattice::EdgeKey edgekey) {
+  void addEdge(const Lattice& lattice, const Lattice::EdgeKey edgekey) {
     assert (edgekey < lattice.getEdgeCount());
     path.push_back(edgekey);
+//    for (size_t i = 0; i < path.size(); ++i) {
+//      std::cout << path[i] << " ";
+//    }
+//    std::cout << std::endl;
   }
 
   const vector<Lattice::EdgeKey>& getPath() const {
@@ -172,11 +178,15 @@ struct Line
     return a.slope < b.slope;
   }
 
+  static bool ComparePtrBySlope(const Line* const a, const Line* const b)
+  {
+    return a->slope < b->slope;
+  }
+
 private:
   vector<Lattice::EdgeKey> path; // path through the graph
-
-
 };
 
 void latticeEnvelope(Lattice &lattice, const FeatureVector& d,
     const FeatureVector& lambdas, std::vector<Line> &a);
+

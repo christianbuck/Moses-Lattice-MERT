@@ -33,5 +33,15 @@ ostream & operator <<(ostream &os, const Phrase& p)
   return os;
 }
 
+// From: Effective STL, item 7
+struct DeleteObject
+{
+  template<typename T>
+  void operator()(const T* ptr) const
+  {
+    delete ptr;
+  }
+};
+
 
 #endif /* UTIL_H_ */
