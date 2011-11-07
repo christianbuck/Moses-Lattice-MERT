@@ -124,9 +124,13 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
       vector<Line*>& lines = L[edgekey];
       for (vector<Line*>::const_iterator li = a.begin(); li != a.end(); li++)
       {
-        Line* const l = new Line(**li); // copy line
-        lineCache.push_back(l);
-        lines.push_back(l);
+        if (i==v.out.size()-1) {
+          lines.push_back(*li); // re-use lines from a
+        } else {
+          Line* const l = new Line(**li); // copy line
+          lineCache.push_back(l);
+          lines.push_back(l);
+        }
       }
       // update unless the edge leads to the sink node and has no feature score vector
       if (edge.scores.size() > 0)
