@@ -120,7 +120,6 @@ void MosesGraphReader::getPhrase(string &suffix, Entry &e)
 
 bool MosesGraphReader::GetNextLattice(Lattice &lattice)
 {
-  size_t n = 0;
   if (is.eof())
     return false;
   while (!is.eof())
@@ -145,7 +144,6 @@ bool MosesGraphReader::GetNextLattice(Lattice &lattice)
     edge.phrase = e.phrase;
     edge.from = e.back;
     edge.to = e.hyp;
-    n = e.features.size();
     lattice.addEdge(edge);
 
     for (size_t i = 0; i < edge.phrase.size(); i++)
