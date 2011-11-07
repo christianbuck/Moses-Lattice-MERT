@@ -12,7 +12,6 @@ class Lattice
 public:
   typedef size_t VertexKey;
   typedef size_t EdgeKey;
-  //typedef std::pair<VertexKey, VertexKey> EdgeKey;
 
   struct Vertex
   {
@@ -83,7 +82,6 @@ public:
 
 private:
   std::map<VertexKey, Vertex> vertices;
-  //std::map<EdgeKey, Edge> edges;
   std::vector<Edge> edges;
 };
 
@@ -149,10 +147,6 @@ struct Line
   void addEdge(const Lattice& lattice, const Lattice::EdgeKey edgekey) {
     assert (edgekey < lattice.getEdgeCount());
     path.push_back(edgekey);
-//    for (size_t i = 0; i < path.size(); ++i) {
-//      std::cout << path[i] << " ";
-//    }
-//    std::cout << std::endl;
   }
 
   const vector<Lattice::EdgeKey>& getPath() const {
