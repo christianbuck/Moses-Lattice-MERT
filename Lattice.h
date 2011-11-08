@@ -170,7 +170,7 @@ struct Line
       slope(l.slope+slope_update), offset(l.offset+offset_update), leftBound(l.leftBound)
   {
     path.reserve(l.path.size()+1);
-    path.insert(path.begin(), l.path.begin(), l.path.end());
+    path.assign(l.path.begin(), l.path.end());
     path.push_back(edgekey);
   }
 

@@ -106,6 +106,7 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
     {
       // merge hulls associated with incoming edges into single sorted list of lines
       vector<vector<Line*>*> alines;
+      alines.reserve(v.in.size());
       for (size_t i = 0; i < v.in.size(); ++i)
       {
         const Lattice::EdgeKey edgekey = v.in[i];
@@ -117,38 +118,31 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
 
     // update hulls associated with outgoing edges
     const size_t n_outedges = v.out.size();
-    //lineCache.reserve(lineCache.size()+(n_outedges-1)*a.size());
     for (size_t i = 0; i < n_outedges; ++i)
     {
       const Lattice::EdgeKey edgekey = v.out[i];
       const Lattice::Edge& edge = lattice.getEdge(edgekey);
+      const bool is_sinknode = (edge.scores.size()==0);
+      const double dot_dir = is_sinknode ? 0 :dotProduct(edge.scores, dir);
+      const double dot_lambda = is_sinknode ? 0 :dotProduct(edge.scores, lambda);
       vector<Line*>& lines = L[edgekey];
       lines.reserve(a.size());
-      //lineCache.reserve(lineCache.size()+a.size());
-      for (vector<Line*>::const_iterator li = a.begin(); li != a.end(); ++li)
+      for (vector<Line*>::const_iterator ait = a.begin(); ait != a.end(); ++ait)
       {
+        Line* const l = (i==n_outedges-1) ? *ait : (is_sinknode) ? new Line(**ait) : new Line(**ait, dot_dir, dot_lambda, edgekey);
         if (i==n_outedges-1) {
-          lines.push_back(*li); // re-use lines from a
+          // reuse line from a but update if necessesary
+          if (!is_sinknode) {
+            Line& update_line = *l;
+            update_line.slope += dot_dir;
+            update_line.offset += dot_lambda;
+            update_line.addEdge(lattice, edgekey);
+          }
         } else {
-          Line* const l = new Line(**li); // copy line
+          // remember to delete newly created line
           lineCache.push_back(l);
-          lines.push_back(l);
         }
-      }
-      // update unless the edge leads to the sink node and has no feature score vector
-      const bool is_sinknode = (edge.scores.size()==0);
-      if (!is_sinknode)
-      {
-        const double dot_dir = dotProduct(edge.scores, dir);
-        const double dot_lambda = dotProduct(edge.scores, lambda);
-        for (vector<Line*>::const_iterator lit = lines.begin();
-            lit != lines.end(); ++lit)
-        {
-          Line& l = **lit;
-          l.slope += dot_dir;
-          l.offset += dot_lambda;
-          l.addEdge(lattice, edgekey);
-        }
+        lines.push_back(l);
       }
     }
     v_it.findNext();
