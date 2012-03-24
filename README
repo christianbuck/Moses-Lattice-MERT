@@ -1,1 +1,3 @@
 Fancy Lattice MERT project that started at the 4th MT Marathon in Dublin. 
+
+Implementation of the lattice algorithm described in "Lattice-based Minimum Error Rate Training for Statistical Machine Translation" by W. Macherey, F. J. Och, I. Thayer and J. Uszkoreit.
