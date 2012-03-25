@@ -45,7 +45,7 @@ using std::cout;
 using std::endl;
 using std::ostream;
 
-void readReference(istream &is_ref, Phrase &reference)
+void ReadReference(istream &is_ref, Phrase &reference)
 {
   string line;
   getline(is_ref, line);
@@ -58,20 +58,20 @@ void readReference(istream &is_ref, Phrase &reference)
   }
 }
 
-double randomDouble(const double low, const double high)
+double RandomDouble(const double low, const double high)
 {
   return (rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (high - low) + low;
 }
 
-void generateRandomVector(vector<double> &vector)
+void GenerateRandomVector(vector<double> &vector)
 {
   for (size_t i = 0; i < vector.size(); i++)
   {
-    vector[i] = randomDouble(0.0, 1.0);
+    vector[i] = RandomDouble(0.0, 1.0);
   }
 }
 
-void getDirectionsAxes(vector<vector<double> >& directions, const size_t dim, const size_t n) {
+void GetDirectionsAxes(vector<vector<double> >& directions, const size_t dim, const size_t n) {
   directions.resize(n);
   for (size_t d = 0; d < n; d++)
   {
@@ -83,17 +83,17 @@ void getDirectionsAxes(vector<vector<double> >& directions, const size_t dim, co
   }
 }
 
-void getDirectionsRandom(vector<vector<double> >& directions, const size_t dim, const size_t n) {
+void GetDirectionsRandom(vector<vector<double> >& directions, const size_t dim, const size_t n) {
   directions.resize(n);
   for (size_t d = 0; d < n; d++)
   {
     directions[d].resize(dim);
-    generateRandomVector(directions[d]);
+    GenerateRandomVector(directions[d]);
   }
 }
 
 
-Result doIteration(const Parameters &params)
+Result DoIteration(const Parameters &params)
 {
   size_t nDimensions = params.lambdas.size();
   size_t nDirections = params.randomVectorCount; // might be higher of lower in case of random directions
@@ -102,11 +102,11 @@ Result doIteration(const Parameters &params)
   if (nDirections == 0)
   {
     nDirections = nDimensions;
-    getDirectionsAxes(directions, nDimensions, nDirections);
+    GetDirectionsAxes(directions, nDimensions, nDirections);
   }
   else
   {
-    getDirectionsRandom(directions, nDimensions, nDirections);
+    GetDirectionsRandom(directions, nDimensions, nDirections);
   }
 
   ifstream is_ref(params.referencePath);
@@ -125,7 +125,7 @@ Result doIteration(const Parameters &params)
       break;
     }
     Phrase reference;
-    readReference(is_ref, reference);
+    ReadReference(is_ref, reference);
     refLength += reference.size();
     // cout << "Reference: [" << reference << "]" << endl;
     cout << "#";
@@ -219,7 +219,7 @@ Result doIteration(const Parameters &params)
   return result;
 }
 
-void printParams(const Parameters &params)
+void PrintParams(const Parameters &params)
 {
   cout << "Parameters:" << endl;
   cout << "  Input path: " << params.inputPath << endl;
@@ -231,7 +231,7 @@ void printParams(const Parameters &params)
   cout << endl;
 }
 
-void updateParameters(Parameters &params, FeatureVector &newLambdas)
+void UpdateParameters(Parameters &params, FeatureVector &newLambdas)
 {
   for (size_t i = 0; i < newLambdas.size(); i++)
   {
@@ -245,14 +245,14 @@ int main(int argc, char **argv)
 
   params.Parse(argc, argv);
 
-  printParams(params);
+  PrintParams(params);
 
   double oldScore = 0.0;
   for (size_t iteration = 0; iteration < params.maxIters; iteration++)
   {
     cout << "Doing iteration " << (iteration + 1) << endl;
-    Result res = doIteration(params);
-    updateParameters(params, res.lambdas);
+    Result res = DoIteration(params);
+    UpdateParameters(params, res.lambdas);
 
     cout << "Current point: ";
     for (size_t i = 0; i < params.lambdas.size(); i++)
