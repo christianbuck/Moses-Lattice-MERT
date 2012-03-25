@@ -32,15 +32,15 @@ typedef map<Phrase, int> NgramCounts;
 
 struct BleuStats
 {
-  double leftBoundary;
-  vector<size_t> counts;
-  size_t length;
+  double m_leftBoundary;
+  vector<size_t> m_counts;
+  size_t m_length;
 
   BleuStats(const size_t length, const double leftBoundary)
   {
-    this->leftBoundary = leftBoundary;
-    this->length = length;
-    this->counts.resize(bleuOrder);
+    this->m_leftBoundary = leftBoundary;
+    this->m_length = length;
+    this->m_counts.resize(bleuOrder);
     // for (size_t n = 0; n < bleuOrder*2; ++n) { counts[n]=0; }
   }
 };
@@ -48,30 +48,30 @@ struct BleuStats
 struct NGramTree;
 struct NGramTree
 {
-  size_t count;
-  size_t used;
-  map<Word, NGramTree> branches;
+  size_t m_count;
+  size_t m_used;
+  map<Word, NGramTree> m_branches;
   NGramTree()
   {
-    count = 0;
-    used = 0;
+    m_count = 0;
+    m_used = 0;
   }
   NGramTree(const size_t count)
   {
-    this->count = count;
-    this->used = 0;
+    this->m_count = count;
+    this->m_used = 0;
   }
 };
 
-void computeBleuStats(const Lattice &lattice, const std::vector<Line>& a,
+void ComputeBleuStats(const Lattice &lattice, const std::vector<Line>& a,
     const Phrase& reference, std::vector<BleuStats>& stats);
-void accumulateBleu(const std::vector<BleuStats>& stats,
+void AccumulateBleu(const std::vector<BleuStats>& stats,
     std::vector<boundary>& cumulatedCounts);
-void optimizeBleu(std::vector<boundary>& cumulatedCounts,
+void OptimizeBleu(std::vector<boundary>& cumulatedCounts,
     Interval& bestInterval, size_t refLength);
 
-void buildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos,
+void BuildNGramTree(const Phrase& ref, NGramTree& tree, size_t pos,
     const size_t len, size_t depth);
-void countNGrams(NGramTree &hypTree, NGramTree& refTree, const size_t depth,
+void CountNGrams(NGramTree &hypTree, NGramTree& refTree, const size_t depth,
     vector<size_t> &counts);
 

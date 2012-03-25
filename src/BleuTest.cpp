@@ -8,13 +8,13 @@ using namespace std;
 #include "Types.h"
 #include "BleuScorer.h"
 
-BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
+BleuStats ComputeBleuStats(const Phrase &hyp, const Phrase& ref)
 {
   const size_t refSize = ref.size();
   NGramTree refTree;
   for (size_t pos = 0; pos < refSize; ++pos)
   {
-    buildNGramTree(ref, refTree, pos, refSize, 0);
+    BuildNGramTree(ref, refTree, pos, refSize, 0);
   }
   const size_t hypSize = hyp.size();
   BleuStats lineStats(hypSize, 0);
@@ -22,10 +22,10 @@ BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
   NGramTree hypTree;
   for (size_t pos = 0; pos < hypSize; ++pos)
   {
-    buildNGramTree(hyp, hypTree, pos, hypSize, 0);
+    BuildNGramTree(hyp, hypTree, pos, hypSize, 0);
   }
 
-  countNGrams(hypTree, refTree, 0, lineStats.counts);
+  CountNGrams(hypTree, refTree, 0, lineStats.m_counts);
 //        cout << "Ref: " << ref << endl;
 //        cout << "Hyp: " << hyp << endl;
 //        cout << "Stats: ";
@@ -36,7 +36,7 @@ BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
   return lineStats;
 }
 
-void readPhrase(istream &is, Phrase &phrase)
+void ReadPhrase(istream &is, Phrase &phrase)
 {
   string line;
   getline(is, line);
@@ -59,15 +59,15 @@ int main(int argc, char** argv)
   while (isHyp && isRef)
   {
     Phrase hyp, ref;
-    readPhrase(isHyp, hyp);
-    readPhrase(isRef, ref);
+    ReadPhrase(isHyp, hyp);
+    ReadPhrase(isRef, ref);
 //        cout << "Hyp: " << hyp << endl;
 //        cout << "Ref: " << ref << endl;
     if (!isHyp || !isRef)
       break;
     vector<BleuStats> stats;
-    stats.push_back(computeBleuStats(hyp, ref));
-    accumulateBleu(stats, counts);
+    stats.push_back(ComputeBleuStats(hyp, ref));
+    AccumulateBleu(stats, counts);
     totalRefSize += ref.size();
   }
 
@@ -85,7 +85,7 @@ int main(int argc, char** argv)
         << totalCounts[i + 4] << endl;
   }
   Interval interval;
-  optimizeBleu(counts, interval, totalRefSize);
+  OptimizeBleu(counts, interval, totalRefSize);
   cout << interval.score << endl;
 }
 

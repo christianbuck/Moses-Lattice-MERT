@@ -53,94 +53,94 @@ public:
     VertexKey to;
   };
 
-  void addEdge(const Edge &edge)
+  void AddEdge(const Edge &edge)
   {
-    EdgeKey key = edges.size();
-    vertices[edge.from].out.push_back(key);
-    vertices[edge.to].in.push_back(key);
-    edges.push_back(edge);
+    EdgeKey key = m_edges.size();
+    m_vertices[edge.from].out.push_back(key);
+    m_vertices[edge.to].in.push_back(key);
+    m_edges.push_back(edge);
   }
 
-  void createSink()
+  void CreateSink()
   {
     size_t sink_vkey = 999999999;
 
-    for (std::map<VertexKey, Vertex>::iterator it = vertices.begin();
-        it != vertices.end(); ++it)
+    for (std::map<VertexKey, Vertex>::iterator it = m_vertices.begin();
+        it != m_vertices.end(); ++it)
     {
       if (it->second.out.size() == 0 && it->first != sink_vkey)
       {
         Edge edge;
         edge.from = it->first;
         edge.to = sink_vkey;
-        addEdge(edge);
+        AddEdge(edge);
       }
     }
   }
 
-  Vertex& getVertex(const VertexKey key)
+  Vertex& GetVertex(const VertexKey key)
   {
     //assert(vertices.find(key) != vertices.end());
-    return vertices[key];
+    return m_vertices[key];
   }
 
-  const Edge& getEdge(const EdgeKey key) const
+  const Edge& GetEdge(const EdgeKey key) const
   {
-    assert (key < edges.size());
-    return edges[key];
+    assert (key < m_edges.size());
+    return m_edges[key];
   }
 
-  size_t getVertexCount() const
+  size_t GetVertexCount() const
   {
-    return vertices.size();
+    return m_vertices.size();
   }
 
-  size_t getEdgeCount() const
+  size_t GetEdgeCount() const
   {
-    return edges.size();
+    return m_edges.size();
   }
 
 private:
-  std::map<VertexKey, Vertex> vertices;
-  std::vector<Edge> edges;
+  std::map<VertexKey, Vertex> m_vertices;
+  std::vector<Edge> m_edges;
 };
 
 class TopoIterator
 {
 public:
   TopoIterator(Lattice &lattice, std::vector<Lattice::VertexKey> &start) :
-      lattice(lattice), pendingVertices(start)
+      m_lattice(lattice), m_pendingVertices(start)
   {
   }
 
-  Lattice::VertexKey get() const
+  Lattice::VertexKey Get() const
   {
-    return pendingVertices.back();
+    return m_pendingVertices.back();
   }
 
-  void findNext()
+  void FindNext()
   {
-    const Lattice::Vertex & v = lattice.getVertex(pendingVertices.back());
-    pendingVertices.pop_back();
+    const Lattice::Vertex & v = m_lattice.GetVertex(m_pendingVertices.back());
+    m_pendingVertices.pop_back();
     for (size_t i = 0; i < v.out.size(); ++i)
     {
-      const Lattice::Edge &edge = lattice.getEdge(v.out[i]);
-      Lattice::Vertex& vEnd = lattice.getVertex(edge.to);
+      const Lattice::Edge &edge = m_lattice.GetEdge(v.out[i]);
+      Lattice::Vertex& vEnd = m_lattice.GetVertex(edge.to);
       if (++vEnd.in_visited % vEnd.in.size() == 0)
       {
-        pendingVertices.push_back(edge.to);
+        m_pendingVertices.push_back(edge.to);
       }
     }
   }
 
-  bool isEnd() const
+  bool IsEnd() const
   {
-    return pendingVertices.empty();
+    return m_pendingVertices.empty();
   }
 
 private:
-  Lattice& lattice;
-  std::vector<Lattice::VertexKey> pendingVertices;
+  Lattice& m_lattice;
+  std::vector<Lattice::VertexKey> m_pendingVertices;
 };
 
 /*
@@ -158,65 +158,72 @@ private:
  */
 
 // describes a Line segment (m * x + b) in a hull
-struct Line
+class Line
 {
-  double slope;      // line slope (m)
-  double offset;     // line offset (b)
-  double leftBound;  // left boundary
-
-  void addEdge(const Lattice& lattice, const Lattice::EdgeKey edgekey) {
-    assert (edgekey < lattice.getEdgeCount());
-    path.push_back(edgekey);
+public:
+  void AddEdge(const Lattice& lattice, const Lattice::EdgeKey edgekey) {
+    assert (edgekey < lattice.GetEdgeCount());
+    m_path.push_back(edgekey);
   }
 
-  const vector<Lattice::EdgeKey>& getPath() const {
-    return path;
+  const vector<Lattice::EdgeKey>& GetPath() const {
+    return m_path;
   }
 
   Line() :
-      slope(0), offset(0), leftBound(-numeric_limits<double>::infinity())
+      m_slope(0), m_offset(0), m_leftBound(-numeric_limits<double>::infinity())
   {
   }
 
   Line(const Line& l) :
-      slope(l.slope), offset(l.offset), leftBound(l.leftBound)
+      m_slope(l.m_slope), m_offset(l.m_offset), m_leftBound(l.m_leftBound)
   {
-    path.reserve(l.path.size()+1);
     // path.insert(path.begin(), l.path.begin(), l.path.end());
-    path.assign(l.path.begin(), l.path.end());
+	m_path.reserve(l.m_path.size()+1);
+    m_path.assign(l.m_path.begin(), l.m_path.end());
   }
 
   Line(const Line& l, const double slope_update, const double offset_update, const Lattice::EdgeKey edgekey) :
-      slope(l.slope+slope_update), offset(l.offset+offset_update), leftBound(l.leftBound)
+      m_slope(l.m_slope+slope_update), m_offset(l.m_offset+offset_update), m_leftBound(l.m_leftBound)
   {
-    path.reserve(l.path.size()+1);
-    path.assign(l.path.begin(), l.path.end());
-    path.push_back(edgekey);
+    m_path.reserve(l.m_path.size()+1);
+    m_path.assign(l.m_path.begin(), l.m_path.end());
+    m_path.push_back(edgekey);
   }
 
-  void getHypothesis(const Lattice &lattice, Phrase &hypothesis) const
+  void GetHypothesis(const Lattice &lattice, Phrase &hypothesis) const
   {
-    for (size_t i = 0; i < path.size(); i++)
+    for (size_t i = 0; i < m_path.size(); i++)
     {
-      const Phrase &phrase = lattice.getEdge(path[i]).phrase;
+      const Phrase &phrase = lattice.GetEdge(m_path[i]).phrase;
       hypothesis.insert(hypothesis.end(), phrase.begin(), phrase.end());
     }
   }
 
   static bool CompareBySlope(const Line &a, const Line &b)
   {
-    return a.slope < b.slope;
+    return a.m_slope < b.m_slope;
   }
 
   static bool ComparePtrBySlope(const Line* const a, const Line* const b)
   {
-    return a->slope < b->slope;
+    return a->m_slope < b->m_slope;
   }
 
+  double GetLeftBound(void) const
+  {
+	return m_leftBound;
+  }
+
+  // should move these to private
+  double m_slope;      // line slope (m)
+  double m_offset;     // line offset (b)
+  double m_leftBound;  // left boundary
+	
 private:
-  vector<Lattice::EdgeKey> path; // path through the graph
+  vector<Lattice::EdgeKey> m_path; // path through the graph	
 };
 
-void latticeEnvelope(Lattice &lattice, const FeatureVector& d,
+void LatticeEnvelope(Lattice &lattice, const FeatureVector& d,
     const FeatureVector& lambdas, std::vector<Line> &a);
 

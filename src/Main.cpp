@@ -19,6 +19,7 @@
  */
 
 #include <iostream>
+#include <iterator>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -135,15 +136,15 @@ Result doIteration(const Parameters &params)
     {
       const FeatureVector& dir = directions[d];
       vector<Line> envelope;
-      latticeEnvelope(lattice, dir, params.lambdas, envelope);
+      LatticeEnvelope(lattice, dir, params.lambdas, envelope);
 
       vector<BleuStats> stats;
-      computeBleuStats(lattice, envelope, reference, stats);
+      ComputeBleuStats(lattice, envelope, reference, stats);
       #pragma omp critical
       {
 
         vector<boundary>& cumulatedCounts = differenceVectors[d];
-        accumulateBleu(stats, cumulatedCounts);
+        AccumulateBleu(stats, cumulatedCounts);
       }
     }
   }
@@ -155,7 +156,7 @@ Result doIteration(const Parameters &params)
   {
     vector<boundary> &cumulatedCounts = differenceVectors[d];
     Interval currInterval;
-    optimizeBleu(cumulatedCounts, currInterval, refLength);
+    OptimizeBleu(cumulatedCounts, currInterval, refLength);
     cout << "BestInterval [" << currInterval.left << " - " << currInterval.right
         << "] score: " << currInterval.score << endl;
     if (d == 0 || currInterval.score > bestInterval.score)
@@ -242,7 +243,7 @@ int main(int argc, char **argv)
 {
   Parameters params;
 
-  params.parse(argc, argv);
+  params.Parse(argc, argv);
 
   printParams(params);
 

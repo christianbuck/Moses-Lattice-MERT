@@ -35,7 +35,7 @@ using std::ostream;
 using std::cout;
 using std::endl;
 
-struct compare_lineptr
+struct CompareLinePtr
 {
   bool operator()(const Line* a, const Line* b)
   {
@@ -44,7 +44,7 @@ struct compare_lineptr
   }
 };
 
-void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
+void MergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
 {
   vector<Line*> lines;
   for (vector<vector<Line*>*>::const_iterator in_it = input.begin();
@@ -61,10 +61,10 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
     if (a_size>0)
     {
       const Line* const prev = a.back();
-      assert(prev->slope <= l->slope);
-      if (prev->slope == l->slope)
+      assert(prev->m_slope <= l->m_slope);
+      if (prev->m_slope == l->m_slope)
       {
-        if (l->offset <= prev->offset)
+        if (l->m_offset <= prev->m_offset)
         {
           discard_line = true;
         }
@@ -77,8 +77,8 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
       while (!discard_line && a_size>0)
       {
         const Line* const prev = a.back();
-        l->leftBound = (l->offset - prev->offset) / (prev->slope - l->slope);
-        if (l->leftBound > prev->leftBound)
+        l->m_leftBound = (l->m_offset - prev->m_offset) / (prev->m_slope - l->m_slope);
+        if (l->m_leftBound > prev->m_leftBound)
           break;
         a.pop_back();
         --a_size;
@@ -86,7 +86,7 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
     }
     if (a_size==0)
     {
-      l->leftBound = -numeric_limits<double>::infinity();
+      l->m_leftBound = -numeric_limits<double>::infinity();
     }
     if (!discard_line)
     {
@@ -96,11 +96,11 @@ void mergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
   }
 }
 
-void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
+void LatticeEnvelope(Lattice& lattice, const FeatureVector& dir,
     const FeatureVector& lambda, vector<Line>& avec)
 {
   // temporary object for storing hull lines that are associated with edges
-  vector<vector<Line*> > L(lattice.getEdgeCount());
+  vector<vector<Line*> > L(lattice.GetEdgeCount());
   vector<Line*> lineCache;
   vector<Line*> a;       // hull for the current vertex
 
@@ -109,11 +109,11 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
   TopoIterator v_it(lattice, start);
 
   // traverse the lattice in topological order
-  while (!v_it.isEnd())
+  while (!v_it.IsEnd())
   {
     a.clear();
-    const size_t vkey = v_it.get();
-    Lattice::Vertex& v = lattice.getVertex(vkey);
+    const size_t vkey = v_it.Get();
+    Lattice::Vertex& v = lattice.GetVertex(vkey);
     // special case for source node: insert horizontal line
     if (vkey == 0)
     {
@@ -132,7 +132,7 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
         const Lattice::EdgeKey edgekey = v.in[i];
         alines.push_back(&L[edgekey]);
       }
-      mergeAndSweep(alines, a);
+      MergeAndSweep(alines, a);
     }
     assert(!a.empty());
 
@@ -141,7 +141,7 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
     for (size_t i = 0; i < n_outedges; ++i)
     {
       const Lattice::EdgeKey edgekey = v.out[i];
-      const Lattice::Edge& edge = lattice.getEdge(edgekey);
+      const Lattice::Edge& edge = lattice.GetEdge(edgekey);
       const bool is_sinknode = (edge.scores.size()==0);
       const double dot_dir = is_sinknode ? 0 :dotProduct(edge.scores, dir);
       const double dot_lambda = is_sinknode ? 0 :dotProduct(edge.scores, lambda);
@@ -154,9 +154,9 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
           // reuse line from a but update if necessesary
           if (!is_sinknode) {
             Line& update_line = *l;
-            update_line.slope += dot_dir;
-            update_line.offset += dot_lambda;
-            update_line.addEdge(lattice, edgekey);
+            update_line.m_slope += dot_dir;
+            update_line.m_offset += dot_lambda;
+            update_line.AddEdge(lattice, edgekey);
           }
         } else {
           // remember to delete newly created line
@@ -165,7 +165,7 @@ void latticeEnvelope(Lattice& lattice, const FeatureVector& dir,
         lines.push_back(l);
       }
     }
-    v_it.findNext();
+    v_it.FindNext();
   }
   for (vector<Line*>::const_iterator lit = a.begin(); lit != a.end(); ++lit)
   {

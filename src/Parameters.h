@@ -40,9 +40,9 @@ public:
   {
   }
 
-  void parse(int argc, char **argv);
+  void Parse(int argc, char **argv);
 
-  void parseLambdas(const char *str);
+  void ParseLambdas(const char *str);
 private:
 };
 

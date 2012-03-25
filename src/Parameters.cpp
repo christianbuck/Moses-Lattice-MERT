@@ -42,7 +42,7 @@ static struct argp_option options[] =
     { "maxi", 'm', "iteration", 0, "maximum number of iterations" },
     { 0 } };
 
-void Parameters::parseLambdas(const char *str)
+void Parameters::ParseLambdas(const char *str)
 {
   string suffix(str);
   size_t pos1 = suffix.find_first_not_of(' ');
@@ -65,7 +65,7 @@ void Parameters::parseLambdas(const char *str)
 }
 
 /* Parse a single option. */
-static error_t parse_opt(int key, char *arg, struct argp_state *state)
+static error_t ParseOption(int key, char *arg, struct argp_state *state)
 {
   Parameters *arguments = (Parameters *) state->input;
 
@@ -84,7 +84,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     break;
 
   case 'l':
-    arguments->parseLambdas(arg);
+    arguments->ParseLambdas(arg);
     break;
 
   case 'd':
@@ -110,9 +110,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-void Parameters::parse(int argc, char **argv)
+void Parameters::Parse(int argc, char **argv)
 {
   argp a =
-  { options, parse_opt, args_doc, program_doc };
+  { options, ParseOption, args_doc, program_doc };
   argp_parse(&a, argc, argv, 0, 0, this);
 }
