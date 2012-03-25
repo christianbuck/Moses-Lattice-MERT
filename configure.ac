@@ -19,6 +19,7 @@ AC_HEADER_STDC
 
 AC_OUTPUT([
 Makefile
+scripts/Makefile
 src/Makefile
 
 ])
