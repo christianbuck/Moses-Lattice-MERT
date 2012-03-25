@@ -35,6 +35,40 @@ using std::ostream;
 using std::cout;
 using std::endl;
 
+/**
+ Adds a new edge to the graph. The members edge.from and edge.to 
+ must point to the corresponding vertices. Vertices are created automatically
+ if they did not exist before.
+ */
+void Lattice::AddEdge(const Edge &edge)
+{
+  EdgeKey key = m_edges.size();
+  m_vertices[edge.from].out.push_back(key);
+  m_vertices[edge.to].in.push_back(key);
+  m_edges.push_back(edge);
+}
+
+/**
+ Creates a new sink (node with no outgoing edges) and connects all existing
+ sinks to it. This is necessary as Moses output does not have a single sink.
+ */
+void Lattice::CreateSink()
+{
+  size_t sink_vkey = 999999999;
+
+  for (std::map<VertexKey, Vertex>::iterator it = m_vertices.begin();
+       it != m_vertices.end(); ++it)
+  {
+	if (it->second.out.size() == 0 && it->first != sink_vkey)
+	{
+	  Edge edge;
+	  edge.from = it->first;
+	  edge.to = sink_vkey;
+	  AddEdge(edge);
+	}
+  }
+}
+
 struct CompareLinePtr
 {
   bool operator()(const Line* a, const Line* b)

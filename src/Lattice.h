@@ -27,12 +27,23 @@
 #include <ostream>
 #include <algorithm>
 
+/**
+ The Lattice class stores the decoder search graph (lattice).
+ The graph contains a set of vertices and a set of edges, both indexed by integers.
+ Due to specifics of Moses search graph, vertices can have arbitrary key, 
+ while edges are always enumerated from 0.
+ Each edge stores a target language phrase and a vector of transition scores.
+ The class is tailored for convex hull search algorithm only.
+ **/
 class Lattice
 {
 public:
-  typedef size_t VertexKey;
-  typedef size_t EdgeKey;
+  typedef size_t VertexKey;		//! vertex key type
+  typedef size_t EdgeKey;		//! edge key type
 
+  /**
+   Represents a vertice in the lattice.
+   */
   struct Vertex
   {
     std::vector<EdgeKey> in;
@@ -45,6 +56,9 @@ public:
     }
   };
 
+  /**
+   Represents an edge in the lattice.
+   */
   struct Edge
   {
     FeatureVector scores;
@@ -53,58 +67,55 @@ public:
     VertexKey to;
   };
 
-  void AddEdge(const Edge &edge)
-  {
-    EdgeKey key = m_edges.size();
-    m_vertices[edge.from].out.push_back(key);
-    m_vertices[edge.to].in.push_back(key);
-    m_edges.push_back(edge);
-  }
+  //! add an edge to the lattice
+  void AddEdge(const Edge &edge);
 
-  void CreateSink()
-  {
-    size_t sink_vkey = 999999999;
+  //! connect all sinks to one sink
+  void CreateSink();
 
-    for (std::map<VertexKey, Vertex>::iterator it = m_vertices.begin();
-        it != m_vertices.end(); ++it)
-    {
-      if (it->second.out.size() == 0 && it->first != sink_vkey)
-      {
-        Edge edge;
-        edge.from = it->first;
-        edge.to = sink_vkey;
-        AddEdge(edge);
-      }
-    }
-  }
-
-  Vertex& GetVertex(const VertexKey key)
-  {
+  /**
+   Gets a vertex by its key.
+   */
+  Vertex& GetVertex(const VertexKey key) 
+  {	
     //assert(vertices.find(key) != vertices.end());
     return m_vertices[key];
   }
 
+  /**
+   Gets an edge by its key.
+   */
   const Edge& GetEdge(const EdgeKey key) const
   {
     assert (key < m_edges.size());
     return m_edges[key];
   }
 
+  /**
+   Gets the total number of vertices in the graph.
+   */
   size_t GetVertexCount() const
   {
     return m_vertices.size();
   }
 
+  /**
+   Gets the total number of edges in the graph.
+   */
   size_t GetEdgeCount() const
   {
     return m_edges.size();
   }
 
 private:
-  std::map<VertexKey, Vertex> m_vertices;
-  std::vector<Edge> m_edges;
+  std::map<VertexKey, Vertex> m_vertices;	//! map of all lattice vertices
+  std::vector<Edge> m_edges;	//! array of all lattice edges
 };
 
+/**
+ The class TopoIterator allows to iterate though the vertices of a lattice
+ in topological order.
+ **/
 class TopoIterator
 {
 public:
@@ -120,6 +131,19 @@ public:
 
   void FindNext()
   {
+  	/*
+      The algorithm from Wikipedia:
+
+      L <- Empty list that will contain the sorted elements
+      S <- Set of all nodes with no incoming edges
+      while S is non-empty do
+      remove a node n from S
+      insert n into L
+      for each node m with an edge e from n to m do
+      remove edge e from the graph
+      if m has no other incoming edges then
+      insert m into S
+     */	
     const Lattice::Vertex & v = m_lattice.GetVertex(m_pendingVertices.back());
     m_pendingVertices.pop_back();
     for (size_t i = 0; i < v.out.size(); ++i)
@@ -143,21 +167,9 @@ private:
   std::vector<Lattice::VertexKey> m_pendingVertices;
 };
 
-/*
- From Wikipedia:
-
- L <- Empty list that will contain the sorted elements
- S <- Set of all nodes with no incoming edges
- while S is non-empty do
- remove a node n from S
- insert n into L
- for each node m with an edge e from n to m do
- remove edge e from the graph
- if m has no other incoming edges then
- insert m into S
+/**
+ The class Line describes a line segment (m * x + b) in a hull
  */
-
-// describes a Line segment (m * x + b) in a hull
 class Line
 {
 public:
@@ -224,6 +236,7 @@ private:
   vector<Lattice::EdgeKey> m_path; // path through the graph	
 };
 
+//! computes the convex hull envelope
 void LatticeEnvelope(Lattice &lattice, const FeatureVector& d,
     const FeatureVector& lambdas, std::vector<Line> &a);
 
