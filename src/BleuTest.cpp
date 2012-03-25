@@ -8,17 +8,6 @@ using namespace std;
 #include "Types.h"
 #include "BleuScorer.h"
 
-ostream & operator <<(ostream &os, const Phrase& p)
-{
-  for (size_t i = 0; i < p.size(); i++)
-  {
-    if (i > 0)
-      os << " ";
-    os << p[i];
-  }
-  return os;
-}
-
 BleuStats computeBleuStats(const Phrase &hyp, const Phrase& ref)
 {
   const size_t refSize = ref.size();
