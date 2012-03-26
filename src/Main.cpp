@@ -32,6 +32,7 @@
 
 #include "MosesGraphReader.h"
 #include "BleuScorer.h"
+#include "Envelope.h"
 #include "Lattice.h"
 #include "Types.h"
 #include "Parameters.h"

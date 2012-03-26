@@ -69,145 +69,68 @@ void Lattice::CreateSink()
   }
 }
 
-struct CompareLinePtr
-{
-  bool operator()(const Line* a, const Line* b)
-  {
-    // reverse order
-    return !Line::CompareBySlope(*a, *b);
-  }
-};
-
-void MergeAndSweep(vector<vector<Line*>*>& input, vector<Line*>& a)
-{
-  vector<Line*> lines;
-  for (vector<vector<Line*>*>::const_iterator in_it = input.begin();
-      in_it < input.end(); ++in_it)
-  {
-    lines.insert(lines.end(), (*in_it)->begin(), (*in_it)->end());
-  }
-  sort(lines.begin(), lines.end(), Line::ComparePtrBySlope);
-  size_t a_size = a.size();
-  for (vector<Line*>::const_iterator it = lines.begin(); it < lines.end(); ++it)
-  {
-    Line* const l = (*it);
-    bool discard_line = false;
-    if (a_size>0)
-    {
-      const Line* const prev = a.back();
-      assert(prev->m_slope <= l->m_slope);
-      if (prev->m_slope == l->m_slope)
-      {
-        if (l->m_offset <= prev->m_offset)
-        {
-          discard_line = true;
-        }
-        else
-        {
-          a.pop_back();
-          --a_size;
-        }
-      }
-      while (!discard_line && a_size>0)
-      {
-        const Line* const prev = a.back();
-        l->m_leftBound = (l->m_offset - prev->m_offset) / (prev->m_slope - l->m_slope);
-        if (l->m_leftBound > prev->m_leftBound)
-          break;
-        a.pop_back();
-        --a_size;
-      }
-    }
-    if (a_size==0)
-    {
-      l->m_leftBound = -numeric_limits<double>::infinity();
-    }
-    if (!discard_line)
-    {
-      a.push_back(l);
-      ++a_size;
-    }
-  }
+/**
+ Gets a vertex by its key.
+ */
+Lattice::Vertex& Lattice::GetVertex(const Lattice::VertexKey key) 
+{	
+  //assert(vertices.find(key) != vertices.end());
+  return m_vertices[key];
 }
 
-void LatticeEnvelope(Lattice& lattice, const FeatureVector& dir,
-    const FeatureVector& lambda, vector<Line>& avec)
+/**
+ Gets an edge by its key.
+ */
+const Lattice::Edge& Lattice::GetEdge(const Lattice::EdgeKey key) const
 {
-  // temporary object for storing hull lines that are associated with edges
-  vector<vector<Line*> > L(lattice.GetEdgeCount());
-  vector<Line*> lineCache;
-  vector<Line*> a;       // hull for the current vertex
+  assert (key < m_edges.size());
+  return m_edges[key];
+}
 
-  vector<size_t> start;
-  start.push_back(0);     // 0 is the source node key in lattice
-  TopoIterator v_it(lattice, start);
+/**
+ Gets the total number of vertices in the graph.
+ */
+size_t Lattice::GetVertexCount() const
+{
+  return m_vertices.size();
+}
 
-  // traverse the lattice in topological order
-  while (!v_it.IsEnd())
-  {
-    a.clear();
-    const size_t vkey = v_it.Get();
-    Lattice::Vertex& v = lattice.GetVertex(vkey);
-    // special case for source node: insert horizontal line
-    if (vkey == 0)
-    {
-      assert(lineCache.empty());
-      Line* const l = new Line();
-      lineCache.push_back(l);
-      a.push_back(l);
-    }
-    else
-    {
-      // merge hulls associated with incoming edges into single sorted list of lines
-      vector<vector<Line*>*> alines;
-      alines.reserve(v.in.size());
-      for (size_t i = 0; i < v.in.size(); ++i)
-      {
-        const Lattice::EdgeKey edgekey = v.in[i];
-        alines.push_back(&L[edgekey]);
-      }
-      MergeAndSweep(alines, a);
-    }
-    assert(!a.empty());
+/**
+ Gets the total number of edges in the graph.
+ */
+size_t Lattice::GetEdgeCount() const
+{
+  return m_edges.size();
+}
 
-    // update hulls associated with outgoing edges
-    const size_t n_outedges = v.out.size();
-    for (size_t i = 0; i < n_outedges; ++i)
+
+/**
+ Go to the next vertice in topological order.
+ */
+void TopoIterator::FindNext()
+{
+	/*
+    The algorithm from Wikipedia:
+
+    L <- Empty list that will contain the sorted elements
+    S <- Set of all nodes with no incoming edges
+    while S is non-empty do
+    remove a node n from S
+    insert n into L
+    for each node m with an edge e from n to m do
+    remove edge e from the graph
+    if m has no other incoming edges then
+    insert m into S
+   */	
+  const Lattice::Vertex & v = m_lattice.GetVertex(m_pendingVertices.back());
+  m_pendingVertices.pop_back();
+  for (size_t i = 0; i < v.out.size(); ++i)
+  {
+    const Lattice::Edge &edge = m_lattice.GetEdge(v.out[i]);
+    Lattice::Vertex& vEnd = m_lattice.GetVertex(edge.to);
+    if (++vEnd.in_visited % vEnd.in.size() == 0)
     {
-      const Lattice::EdgeKey edgekey = v.out[i];
-      const Lattice::Edge& edge = lattice.GetEdge(edgekey);
-      const bool is_sinknode = (edge.scores.size()==0);
-      const double dot_dir = is_sinknode ? 0 :dotProduct(edge.scores, dir);
-      const double dot_lambda = is_sinknode ? 0 :dotProduct(edge.scores, lambda);
-      vector<Line*>& lines = L[edgekey];
-      lines.reserve(a.size());
-      for (vector<Line*>::const_iterator ait = a.begin(); ait != a.end(); ++ait)
-      {
-        Line* const l = (i==n_outedges-1) ? *ait : (is_sinknode) ? new Line(**ait) : new Line(**ait, dot_dir, dot_lambda, edgekey);
-        if (i==n_outedges-1) {
-          // reuse line from a but update if necessesary
-          if (!is_sinknode) {
-            Line& update_line = *l;
-            update_line.m_slope += dot_dir;
-            update_line.m_offset += dot_lambda;
-            update_line.AddEdge(lattice, edgekey);
-          }
-        } else {
-          // remember to delete newly created line
-          lineCache.push_back(l);
-        }
-        lines.push_back(l);
-      }
+      m_pendingVertices.push_back(edge.to);
     }
-    v_it.FindNext();
-  }
-  for (vector<Line*>::const_iterator lit = a.begin(); lit != a.end(); ++lit)
-  {
-    avec.push_back(**lit);
-  }
-  for (vector<Line*>::const_iterator cit = lineCache.begin();
-      cit != lineCache.end(); ++cit)
-  {
-    delete *cit;
   }
 }

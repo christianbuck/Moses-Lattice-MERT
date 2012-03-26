@@ -34,7 +34,9 @@ latticemert_SOURCES = \
 	Parameters.h      \
 	Types.h      \
 	Util.h      \
-	Main.cpp      
+	Main.cpp      \
+	Envelope.h      \
+	Envelope.cpp
 
 latticemert_LDFLAGS = \
 	-lboost_regex-mt

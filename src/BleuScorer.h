@@ -25,6 +25,7 @@
 
 #include "Types.h"
 #include "Lattice.h"
+#include "Envelope.h"
 
 using std::map;
 

@@ -22,12 +22,15 @@
 
 #include "Types.h"
 
+/**
+ The class Parameters stores the configuration of the program. 
+ It is used to parse the arguments at startup.
+ */
 class Parameters
 {
 public:
   const char *inputPath;
   const char *referencePath;
-  //const char *lambda;
   FeatureVector lambdas;
   int verbose;
   size_t maxIters;
@@ -45,4 +48,3 @@ public:
   void ParseLambdas(const char *str);
 private:
 };
-

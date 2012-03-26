@@ -42,6 +42,7 @@ double dotProduct(const vector<F>& a, const vector<F>& b)
   return p;
 }
 
+/*
 ostream & operator <<(ostream &os, const Phrase& p)
 {
   for (size_t i = 0; i < p.size(); i++)
@@ -52,6 +53,7 @@ ostream & operator <<(ostream &os, const Phrase& p)
   }
   return os;
 }
+*/
 
 // From: Effective STL, item 7
 struct DeleteObject
